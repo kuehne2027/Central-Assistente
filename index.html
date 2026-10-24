@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!--
+  Central do Assistente — KN
+  Idealização e desenvolvimento: Isis Costa de Mello
+  © 2026 Isis Costa de Mello
+-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Isis Costa de Mello">
+<title>Central do Assistente · KN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<script>try{if(localStorage.getItem("kn-diaristas-tema")==="claro")document.documentElement.setAttribute("data-tema","claro")}catch(e){}</script>
+<style>
+:root{
+  --bg:#07090d; --ink:#eef2f5; --muted:#8c97a3; --line:rgba(255,255,255,.09); --glass:rgba(22,27,34,.55);
+  --accent:#4cc3ff; --amber:#ffb547; --red:#ff6b6e; --green:#3ddc97;
+  --wash:rgba(255,255,255,.045); --sep:rgba(255,255,255,.06); --line2:rgba(255,255,255,.25); --ph:rgba(255,255,255,.22);
+  --navbg:rgba(7,9,13,.72); --sidebg:rgba(10,13,18,.82); --overlay:rgba(3,5,8,.72); --modal:rgba(14,18,24,.97); --on-accent:#04121b; --pill:#eef2f5; --on-pill:#000;
+  --grain:rgba(255,255,255,.035); --shadow:none; --a1:.10; --a2:.16; --a3:.3;
+  --f-display:'Unbounded',system-ui,sans-serif; --f-sans:'Onest',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+  --side:252px; --side-mini:68px; --nav:56px;
+  color-scheme:dark;
+}
+html[data-tema="claro"]{
+  --bg:#f4f8fc; --ink:#082b4a; --muted:#647e95; --line:#d7e5f1; --glass:#ffffff;
+  --accent:#0b7fe8; --amber:#b45f06; --red:#d33b40; --green:#128a58;
+  --wash:rgba(8,43,74,.04); --sep:rgba(8,43,74,.08); --line2:rgba(8,43,74,.28); --ph:rgba(8,43,74,.35);
+  --navbg:rgba(255,255,255,.88); --sidebg:rgba(255,255,255,.9); --overlay:rgba(8,43,74,.35); --modal:#ffffff; --on-accent:#ffffff; --pill:#082b4a; --on-pill:#ffffff;
+  --grain:rgba(8,43,74,.05); --shadow:0 10px 32px rgba(28,73,111,.07); --a1:.07; --a2:.07; --a3:.08;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);transition:background-color .25s ease}
+body{font-family:var(--f-sans);font-size:14px;line-height:1.45;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aurora i{position:absolute;border-radius:50%}
+.aurora i:nth-child(1){width:46vw;height:46vw;left:-12vw;top:-14vw;background:#0e6d9c;opacity:var(--a1)}
+.aurora i:nth-child(2){width:38vw;height:38vw;right:-10vw;top:18vh;background:#b86b12;opacity:var(--a2)}
+.aurora i:nth-child(3){width:50vw;height:40vw;left:30vw;bottom:-22vw;background:#123f7a;opacity:var(--a3)}
+.grain{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(var(--grain) 1px,transparent 1px);background-size:22px 22px}
+
+/* ===== Topo ===== */
+#topnav{position:fixed;top:0;left:0;right:0;height:var(--nav);z-index:50;background:var(--navbg);border-bottom:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);display:flex;align-items:center;gap:10px;padding:0 14px}
+.icon-btn{flex-shrink:0;width:36px;height:36px;border-radius:50%;border:0;background:var(--wash);color:var(--muted);font-size:15px;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn:hover{color:var(--ink)}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.brand{display:flex;align-items:center;gap:8px;flex-shrink:0;user-select:none;-webkit-tap-highlight-color:transparent}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.brand .nm{font-family:var(--f-display);font-size:13px;font-weight:500;letter-spacing:-.01em;white-space:nowrap}
+.brand .nm span{color:var(--muted);font-family:var(--f-sans);font-weight:500}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;color:#fff;background:#16a34a;white-space:nowrap;flex-shrink:0}
+.live.off{background:#d33b40}.live.wait{background:#d97706}
+.atual{margin-left:auto;display:flex;align-items:center;gap:6px;padding:4px;border-radius:999px;background:var(--wash);min-width:0}
+.atual .nome{padding:5px 14px;border-radius:999px;background:var(--pill);color:var(--on-pill);font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
+.atual .icon-btn{width:30px;height:30px;font-size:13px;background:transparent}
+.acesso-btn{flex-shrink:0;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;border:0;background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green);white-space:nowrap}
+body:not(.admin) .acesso-btn{display:none}
+
+/* ===== Menu lateral ===== */
+#side{position:fixed;top:var(--nav);left:0;bottom:0;width:var(--side);z-index:40;background:var(--sidebg);border-right:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;flex-direction:column;transition:width .22s ease,transform .22s ease}
+.side-top{padding:14px 12px 8px}
+.side-top input{width:100%;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--wash);color:var(--ink);font:inherit;font-size:13px}
+.side-top input::placeholder{color:var(--ph)}
+.side-tit{font-size:10.5px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600;padding:8px 18px 6px}
+.lista{flex:1;overflow:auto;padding:4px 10px 10px;display:flex;flex-direction:column;gap:4px}
+.app-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:16px;border:1px solid transparent;background:transparent;color:var(--ink);transition:background-color .15s,border-color .15s}
+.app-item:hover{background:var(--wash)}
+.app-item.on{background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.app-ic{width:34px;height:34px;flex-shrink:0;border-radius:12px;display:grid;place-items:center;background:var(--wash);font-size:16px}
+.app-item.on .app-ic{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.app-txt{min-width:0;flex:1}
+.app-txt b{display:block;font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-txt small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag-rest{font-size:10px;color:var(--amber);margin-left:4px}
+.side-foot{padding:10px 12px 14px;border-top:1px solid var(--sep);display:flex;flex-direction:column;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:var(--on-accent);border:1px solid transparent;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn.sec{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
+.btn.sec:hover{border-color:var(--line2);filter:none}
+.btn.danger{background:transparent;color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,transparent)}
+.btn.sm{padding:5px 12px;font-size:12px}
+body:not(.admin) .so-admin{display:none!important}
+.sig{text-align:center;font-size:11px;color:var(--muted);line-height:1.5}
+.sig button{border:0;background:transparent;padding:0;color:var(--accent);font:inherit;font-weight:600}
+/* recolhido: só os ícones */
+body.mini #side{width:var(--side-mini)}
+body.mini .side-top,body.mini .side-tit,body.mini .app-txt,body.mini .side-foot .sig,body.mini .side-foot .btn span{display:none}
+body.mini .app-item{justify-content:center;padding:8px 0}
+body.mini .side-foot .btn{padding:8px 0}
+body.oculto #side{transform:translateX(-102%)}
+body.oculto #main{left:0}
+
+/* ===== Área do app ===== */
+#main{position:fixed;top:var(--nav);left:var(--side);right:0;bottom:0;z-index:1;transition:left .22s ease}
+body.mini #main{left:var(--side-mini)}
+#frame{width:100%;height:100%;border:0;display:block;background:transparent}
+#loading{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
+#loading.on{display:grid}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+/* tela inicial */
+#home{position:absolute;inset:0;overflow:auto;padding:28px 28px 40px}
+.home-head{margin:6px 4px 22px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600}
+.home-head h1{font-family:var(--f-display);font-weight:500;font-size:clamp(28px,4.4vw,48px);letter-spacing:-.03em;line-height:1.02;margin:6px 0 8px}
+.home-head p{margin:0;color:var(--muted);font-size:14px;max-width:560px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.card{background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;padding:18px 20px;text-align:left;color:var(--ink);display:flex;flex-direction:column;gap:12px;min-height:150px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--line2);transform:translateY(-2px)}
+.card .app-ic{width:42px;height:42px;border-radius:14px;font-size:20px;background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.card b{font-family:var(--f-display);font-weight:500;font-size:17px;letter-spacing:-.02em}
+.card small{color:var(--muted);font-size:12.5px;line-height:1.4}
+.card .abrir{margin-top:auto;font-size:12px;color:var(--accent);font-weight:600}
+.vazio{border:1.5px dashed var(--line2);border-radius:24px;padding:36px;text-align:center;color:var(--muted);background:var(--wash)}
+.vazio b{display:block;color:var(--ink);font-size:15px;margin-bottom:6px;font-weight:600}
+
+/* ===== Modais ===== */
+.modal-bg{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;animation:fade .18s ease}
+.modal{background:var(--modal);color:var(--ink);border:1px solid var(--line);border-radius:28px;width:460px;max-width:100%;max-height:88vh;overflow:auto;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.45);animation:pop .22s cubic-bezier(.2,.9,.3,1.2)}
+.modal.larga{width:720px}
+.modal h3{margin:0 0 6px;font-family:var(--f-display);font-weight:500;font-size:20px;letter-spacing:-.02em}
+.modal p.sub{margin:0 0 16px;color:var(--muted);font-size:12.5px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-bottom:6px}
+.field input,.field textarea{width:100%;font:inherit;font-size:14px;padding:9px 14px;border:1px solid var(--line);border-radius:16px;background:var(--wash);color:var(--ink)}
+.field input::placeholder{color:var(--ph)}
+.field input:focus{outline:none;border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:90px 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin:4px 0 14px}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.acoes{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.gerir-lista{display:flex;flex-direction:column;gap:6px;margin:4px 0 16px}
+.gerir-item{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:16px;background:var(--wash)}
+.gerir-item .app-txt small{font-family:var(--f-mono);font-size:11px}
+.gerir-item .mini-acoes{display:flex;gap:4px}
+.gerir-item .mini-acoes button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:12px}
+.gerir-item .mini-acoes button:hover{color:var(--ink);border-color:var(--line2)}
+.gerir-item .mini-acoes button.del{color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,transparent)}
+.erro{color:var(--red);font-size:12px;min-height:16px;margin:-4px 0 10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:200;max-width:min(560px,calc(100vw - 32px));border-radius:999px;padding:11px 20px;background:var(--modal);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.35);font-weight:500;animation:fade .25s ease}
+.toast.ok{color:var(--green)}.toast.err{color:var(--red)}.toast.warn{color:var(--amber)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+
+/* ===== Celular: menu por cima, escondido por padrão ===== */
+#veu{display:none}
+@media (max-width:860px){
+  #side{width:min(82vw,300px);transform:translateX(-102%)}
+  body.side-aberta #side{transform:none}
+  body.side-aberta #veu{display:block;position:fixed;inset:var(--nav) 0 0 0;z-index:39;background:var(--overlay)}
+  #main,body.mini #main{left:0}
+  body.mini #side{width:min(82vw,300px)}
+  body.mini .side-top,body.mini .side-tit,body.mini .app-txt,body.mini .side-foot .sig,body.mini .side-foot .btn span{display:revert}
+  .live,.brand .nm span{display:none}
+  #home{padding:20px 16px 32px}
+  .atual .nome{display:none}
+  .acesso-btn{font-size:0;padding:0;width:34px;height:34px}
+  .acesso-btn::before{content:'🔓';font-size:14px}
+  body.oculto #side{transform:translateX(-102%)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header id="topnav">
+  <button type="button" class="icon-btn" id="menuBtn" title="Mostrar/esconder o menu" aria-label="Mostrar ou esconder o menu">☰</button>
+  <div class="brand" id="knBrand" title="Central do Assistente"><span class="dot"></span><span class="nm">KN<span> · Central do Assistente</span></span></div>
+  <span class="live wait" id="knLive">● conectando…</span>
+  <div class="atual" id="atualBox" hidden>
+    <span class="nome" id="atualNome"></span>
+    <button type="button" class="icon-btn" id="recarregarBtn" title="Recarregar o app" aria-label="Recarregar o app">⟳</button>
+    <button type="button" class="icon-btn" id="novaAbaBtn" title="Abrir em nova aba" aria-label="Abrir em nova aba">↗</button>
+    <button type="button" class="icon-btn" id="inicioBtn" title="Voltar ao início" aria-label="Voltar ao início">⌂</button>
+  </div>
+  <button type="button" class="icon-btn" id="temaBtn" title="Versão clara" aria-label="Alternar tema claro/escuro" style="margin-left:auto">☀</button>
+  <button type="button" class="acesso-btn" id="acessoBtn" title="Administração ativa — sair ou trocar a senha">🔓 Admin</button>
+</header>
+
+<aside id="side" aria-label="Apps">
+  <div class="side-top"><input id="busca" type="search" placeholder="Buscar app…" autocomplete="off"></div>
+  <div class="side-tit">Apps</div>
+  <nav class="lista" id="lista"></nav>
+  <div class="side-foot">
+    <button type="button" class="btn sec sm so-admin" id="gerirBtn" title="Adicionar, editar e organizar os apps">✎ <span>Gerenciar apps</span></button>
+    <div class="sig">Desenvolvido por <button type="button" id="isisAuthorBtn">Isis Costa de Mello</button> · © 2026</div>
+  </div>
+</aside>
+<div id="veu"></div>
+
+<main id="main">
+  <section id="home"></section>
+  <iframe id="frame" title="App" hidden allow="clipboard-read; clipboard-write; camera; microphone; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <div id="loading"><div class="spin"></div></div>
+</main>
+
+<script>
+/* ===================== CONEXÃO (mesmo banco do Controle de Diaristas) ===================== */
+const SUPABASE_URL = 'https://wimqujskqgabjboihiei.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9fcTqUHHJK8R3ebe_l1lXQ_LQwmWWlI';
+const H = {apikey:SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json'};
+async function rest(path){ const r = await fetch(SUPABASE_URL+'/rest/v1/'+path, {headers:H}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function rpc(fn, args){ const r = await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn, {method:'POST', headers:H, body:JSON.stringify(args||{})}); const t = await r.text(); if(!r.ok){ let m=t; try{ m=JSON.parse(t).message||t }catch(e){} throw new Error(m); } return t ? JSON.parse(t) : null; }
+
+/* ===================== ESTADO ===================== */
+let APPS = [];
+let atual = null;
+let SENHA = null; try{ SENHA = sessionStorage.getItem('kn-dia-s'); }catch(e){}
+const isAdmin = ()=>!!SENHA;
+const $ = s=>document.querySelector(s);
+const esc = s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg, tipo){ const el=document.createElement('div'); el.className='toast '+(tipo||''); el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(), 3000); }
+function marcarConexao(ok){ const el=$('#knLive'); const hh=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); el.className='live'+(ok?'':' off'); el.textContent= ok ? '● ao vivo · '+hh : '● sem conexão'; }
+function urlValida(u){ if(/^[\w\-./]+\.html?([?#].*)?$/i.test(u) && !u.includes('..')) return true; try{ const x=new URL(u); return x.protocol==='https:'||x.protocol==='http:'; }catch(e){ return false; } }
+function urlCompleta(u){ try{ return new URL(u, location.href).href; }catch(e){ return u; } }
+
+/* ===================== CARREGAR APPS ===================== */
+async function carregar(){
+  try{
+    if(isAdmin()){
+      const r = await rpc('central_apps_listar', {p_senha:SENHA});
+      if(r && r.erro){ sair(true); return carregar(); }
+      APPS = r || [];
+    } else {
+      APPS = await rest('central_apps?select=id,nome,url,icone,descricao,ordem,restrito&order=ordem.asc,nome.asc');
+    }
+    marcarConexao(true);
+  }catch(e){ console.error(e); marcarConexao(false); }
+  document.body.classList.toggle('admin', isAdmin());
+  desenharLista();
+  if(atual){ const a = APPS.find(x=>x.id===atual.id); if(a){ atual=a; $('#atualNome').textContent=a.nome; } else voltarInicio(); }
+  else desenharHome();
+}
+
+/* ===================== MENU LATERAL ===================== */
+function desenharLista(){
+  const q = ($('#busca').value||'').toLowerCase().trim();
+  const vis = APPS.filter(a=>!q || (a.nome+' '+(a.descricao||'')).toLowerCase().includes(q));
+  $('#lista').innerHTML = vis.length ? vis.map(a=>`<button type="button" class="app-item ${atual&&atual.id===a.id?'on':''}" data-id="${a.id}" title="${esc(a.nome)}">
+      <span class="app-ic">${esc(a.icone||'▦')}</span>
+      <span class="app-txt"><b>${esc(a.nome)}${a.restrito?'<span class="tag-rest">🔒</span>':''}</b>${a.descricao?`<small>${esc(a.descricao)}</small>`:''}</span></button>`).join('')
+    : `<div class="small" style="color:var(--muted);font-size:12px;padding:8px 8px">${APPS.length?'Nenhum app encontrado.':'Nenhum app ainda.'}</div>`;
+  $('#lista').querySelectorAll('.app-item').forEach(b=>b.onclick=()=>{ abrir(APPS.find(a=>a.id===b.dataset.id)); if(window.innerWidth<=860) document.body.classList.remove('side-aberta'); });
+}
+$('#busca').addEventListener('input', desenharLista);
+
+/* ===================== TELA INICIAL ===================== */
+function desenharHome(){
+  const hora = new Date().getHours();
+  const saud = hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
+  $('#home').innerHTML = `<div class="home-head"><div class="eyebrow">Central KN · ${saud}</div><h1>Central do Assistente</h1><p>Todos os apps da operação num só lugar. Escolha no menu ao lado ou nos cartões abaixo.</p></div>
+    ${APPS.length ? `<div class="cards">${APPS.map(a=>`<button type="button" class="card" data-id="${a.id}"><span class="app-ic">${esc(a.icone||'▦')}</span><div><b>${esc(a.nome)}${a.restrito?' <span class="tag-rest">🔒</span>':''}</b>${a.descricao?`<br><small>${esc(a.descricao)}</small>`:''}</div><span class="abrir">Abrir →</span></button>`).join('')}</div>`
+      : `<div class="vazio"><b>Nenhum app cadastrado ainda</b>${isAdmin()?'Clique em “Gerenciar apps” no menu para colocar o primeiro link.':'Os apps aparecem aqui assim que forem cadastrados.'}</div>`}`;
+  $('#home').querySelectorAll('.card').forEach(b=>b.onclick=()=>abrir(APPS.find(a=>a.id===b.dataset.id)));
+}
+
+/* ===================== ABRIR APP (por link, sem pesar a Central) ===================== */
+function abrir(app){
+  if(!app) return;
+  atual = app;
+  try{ localStorage.setItem('kn-central-ultimo', app.id); }catch(e){}
+  history.replaceState(null,'','#app='+app.id);
+  $('#home').hidden = true;
+  const f = $('#frame'); f.hidden = false;
+  $('#loading').classList.add('on');
+  f.onload = ()=>$('#loading').classList.remove('on');
+  setTimeout(()=>$('#loading').classList.remove('on'), 8000);
+  if(f.getAttribute('src')!==app.url) f.src = app.url;
+  else $('#loading').classList.remove('on');
+  $('#atualBox').hidden = false; $('#atualNome').textContent = app.nome;
+  $('#temaBtn').style.marginLeft = '';
+  document.title = app.nome+' · Central do Assistente';
+  desenharLista();
+}
+function voltarInicio(){
+  atual = null; history.replaceState(null,'',location.pathname);
+  const f=$('#frame'); f.hidden=true; f.removeAttribute('src');
+  $('#home').hidden=false; $('#atualBox').hidden=true; $('#temaBtn').style.marginLeft='auto';
+  document.title='Central do Assistente · KN';
+  desenharLista(); desenharHome();
+}
+$('#inicioBtn').onclick = voltarInicio;
+$('#recarregarBtn').onclick = ()=>{ if(!atual) return; $('#loading').classList.add('on'); const f=$('#frame'); f.src = 'about:blank'; setTimeout(()=>{ f.src = atual.url; },50); };
+$('#novaAbaBtn').onclick = ()=>{ if(atual) window.open(urlCompleta(atual.url),'_blank','noopener'); };
+
+/* ===================== MENU: ESCONDER / MOSTRAR ===================== */
+const MODOS = ['aberto','mini','oculto'];
+function modoMenu(m){ document.body.classList.toggle('mini', m==='mini'); document.body.classList.toggle('oculto', m==='oculto'); $('#menuBtn').title = m==='aberto'?'Recolher o menu (só ícones)':m==='mini'?'Esconder o menu':'Mostrar o menu'; try{ localStorage.setItem('kn-central-menu', m); }catch(e){} }
+let _m='aberto'; try{ _m = localStorage.getItem('kn-central-menu') || 'aberto'; }catch(e){} if(!MODOS.includes(_m)) _m='aberto'; modoMenu(_m);
+$('#menuBtn').onclick = ()=>{
+  if(window.innerWidth<=860){ document.body.classList.remove('oculto','mini'); document.body.classList.toggle('side-aberta'); return; }
+  const atualM = document.body.classList.contains('oculto')?'oculto':document.body.classList.contains('mini')?'mini':'aberto';
+  modoMenu(MODOS[(MODOS.indexOf(atualM)+1)%3]);
+};
+$('#veu').onclick = ()=>document.body.classList.remove('side-aberta');
+
+/* ===================== TEMA ===================== */
+function aplicarTema(escuro){
+  if(escuro) document.documentElement.removeAttribute('data-tema'); else document.documentElement.setAttribute('data-tema','claro');
+  $('#temaBtn').textContent = escuro?'☀':'☾'; $('#temaBtn').title = escuro?'Versão clara':'Versão escura';
+  try{ localStorage.setItem('kn-diaristas-tema', escuro?'escuro':'claro'); }catch(e){}
+}
+aplicarTema(document.documentElement.getAttribute('data-tema')!=='claro');
+$('#temaBtn').onclick = ()=>aplicarTema(document.documentElement.getAttribute('data-tema')==='claro');
+
+/* ===================== ACESSO DISCRETO (3 cliques em KN ou Ctrl+Shift+K) ===================== */
+(function(){ let n=0,t=null; $('#knBrand').addEventListener('click',()=>{ n++; clearTimeout(t); t=setTimeout(()=>{ const q=n; n=0; if(q>=3) abrirAcesso(); },450); }); })();
+document.addEventListener('keydown', e=>{ if(e.ctrlKey && e.shiftKey && (e.key==='K'||e.key==='k')){ e.preventDefault(); abrirAcesso(); } });
+$('#acessoBtn').onclick = abrirAcesso;
+function sair(silencioso){ SENHA=null; try{ sessionStorage.removeItem('kn-dia-s'); }catch(e){} document.body.classList.remove('admin'); if(!silencioso){ toast('Saiu da administração.'); carregar(); } }
+function modal(html, larga){ const bg=document.createElement('div'); bg.className='modal-bg'; bg.innerHTML=`<div class="modal ${larga?'larga':''}">${html}</div>`; document.body.appendChild(bg); bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); }); return bg; }
+async function abrirAcesso(){
+  if(isAdmin()){
+    const bg = modal(`<h3>Administração</h3><p class="sub">Você pode adicionar, editar e organizar os apps. Ao fechar o navegador, volta para consulta.</p>
+      <div class="acoes"><button class="btn danger" id="mSair">Sair da administração</button><button class="btn sec" id="mFechar">Fechar</button></div>`);
+    bg.querySelector('#mFechar').onclick=()=>bg.remove(); bg.querySelector('#mSair').onclick=()=>{ bg.remove(); sair(); }; return;
+  }
+  const bg = modal(`<h3>Entrar</h3><p class="sub">Acesso para organizar a Central.</p>
+    <div class="field"><label for="mSenha">Senha</label><input id="mSenha" type="password" autocomplete="off"></div><div class="erro" id="mErro"></div>
+    <div class="acoes"><button class="btn sec" id="mFechar">Cancelar</button><button class="btn" id="mEntrar">Entrar</button></div>`);
+  const inp = bg.querySelector('#mSenha'); inp.focus();
+  bg.querySelector('#mFechar').onclick=()=>bg.remove();
+  const go = async ()=>{ const s=inp.value; if(!s) return; try{ const ok = await rpc('kn_dia_login',{p_senha:s}); if(ok===true){ SENHA=s; try{ sessionStorage.setItem('kn-dia-s', s); }catch(e){} bg.remove(); toast('Administração liberada.','ok'); carregar(); } else { bg.querySelector('#mErro').textContent='Senha incorreta.'; inp.select(); } }catch(e){ bg.querySelector('#mErro').textContent=e.message; } };
+  bg.querySelector('#mEntrar').onclick=go; inp.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+}
+
+/* ===================== GERENCIAR APPS (só com senha) ===================== */
+$('#gerirBtn').onclick = abrirGerir;
+async function gravar(acao, id, dados){
+  try{ const r = await rpc('central_apps_gravar', {p_senha:SENHA, p_acao:acao, p_id:id||null, p_dados:dados||null}); if(r && r.erro){ toast(r.erro,'err'); sair(true); carregar(); return null; } return r||{}; }
+  catch(e){ toast('Erro ao salvar: '+e.message,'err'); return null; }
+}
+function abrirGerir(){
+  if(!isAdmin()) return;
+  const bg = modal(`<h3>Gerenciar apps</h3><p class="sub">Cole o link de cada app. A Central só abre o endereço, então continua leve.</p>
+    <div class="gerir-lista" id="gLista"></div>
+    <div class="field" style="margin-top:6px"><label>${'Adicionar novo app'}</label></div>
+    <div class="row2"><div class="field"><label for="gIc">Ícone</label><input id="gIc" maxlength="4" placeholder="📊"></div><div class="field"><label for="gNome">Nome</label><input id="gNome" placeholder="Ex.: Controle de Diaristas"></div></div>
+    <div class="field"><label for="gUrl">Link</label><input id="gUrl" placeholder="https://kuehne2027.github.io/…"></div>
+    <div class="field"><label for="gDesc">Descrição (opcional)</label><input id="gDesc" placeholder="Uma linha sobre o app"></div>
+    <label class="check"><input type="checkbox" id="gRest"> Só aparece para quem entrar com a senha</label>
+    <input type="hidden" id="gId">
+    <div class="acoes"><button class="btn sec" id="gFechar">Fechar</button><div style="display:flex;gap:8px"><button class="btn sec" id="gCancelarEd" hidden>Cancelar edição</button><button class="btn" id="gSalvar">+ Adicionar</button></div></div>`, true);
+  const g = s=>bg.querySelector(s);
+  const limpar = ()=>{ ['#gIc','#gNome','#gUrl','#gDesc','#gId'].forEach(s=>g(s).value=''); g('#gRest').checked=false; g('#gSalvar').textContent='+ Adicionar'; g('#gCancelarEd').hidden=true; };
+  function lista(){
+    g('#gLista').innerHTML = APPS.length ? APPS.map((a,i)=>`<div class="gerir-item"><span class="app-ic">${esc(a.icone||'▦')}</span>
+      <span class="app-txt"><b>${esc(a.nome)}${a.restrito?'<span class="tag-rest">🔒 só com senha</span>':''}</b><small>${esc(a.url)}</small></span>
+      <span class="mini-acoes"><button title="Subir" data-up="${i}" ${i===0?'disabled':''}>↑</button><button title="Descer" data-down="${i}" ${i===APPS.length-1?'disabled':''}>↓</button><button title="Editar" data-ed="${a.id}">✎</button><button class="del" title="Remover" data-del="${a.id}">✕</button></span></div>`).join('')
+      : '<div class="vazio" style="padding:20px">Nenhum app ainda. Adicione o primeiro abaixo.</div>';
+    g('#gLista').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{ const a=APPS.find(x=>x.id===b.dataset.ed); g('#gId').value=a.id; g('#gIc').value=a.icone||''; g('#gNome').value=a.nome; g('#gUrl').value=a.url; g('#gDesc').value=a.descricao||''; g('#gRest').checked=!!a.restrito; g('#gSalvar').textContent='Salvar alterações'; g('#gCancelarEd').hidden=false; g('#gNome').focus(); });
+    g('#gLista').querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{ const a=APPS.find(x=>x.id===b.dataset.del); if(!confirm('Remover "'+a.nome+'" da Central? (o app em si não é apagado)')) return; if(await gravar('delete',a.id)){ toast('App removido.','ok'); if(atual&&atual.id===a.id) voltarInicio(); await carregar(); lista(); } });
+    const mover = async (i,j)=>{ const a=APPS[i], b=APPS[j]; const ordA = j, ordB = i; await gravar('update',a.id,{ordem:ordA}); await gravar('update',b.id,{ordem:ordB}); APPS.forEach((x,k)=>{ if(x!==a&&x!==b&&x.ordem!==k) gravar('update',x.id,{ordem:k}); }); await carregar(); lista(); };
+    g('#gLista').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>mover(+b.dataset.up, +b.dataset.up-1));
+    g('#gLista').querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>mover(+b.dataset.down, +b.dataset.down+1));
+  }
+  lista();
+  g('#gFechar').onclick=()=>bg.remove();
+  g('#gCancelarEd').onclick=limpar;
+  g('#gSalvar').onclick=async()=>{
+    const dados = {icone:g('#gIc').value.trim()||null, nome:g('#gNome').value.trim(), url:g('#gUrl').value.trim(), descricao:g('#gDesc').value.trim()||null, restrito:g('#gRest').checked};
+    if(!dados.nome) return toast('Coloque o nome do app.','warn');
+    if(!urlValida(dados.url)) return toast('Coloque um link válido (https://…) ou o nome de um arquivo do repositório (ex.: diaristas.html).','warn');
+    const id = g('#gId').value;
+    if(!id) dados.ordem = APPS.length;
+    const r = await gravar(id?'update':'insert', id||null, dados);
+    if(r){ toast(id?'App atualizado.':'App adicionado.','ok'); limpar(); await carregar(); lista(); }
+  };
+}
+
+/* ===================== SOBRE (autoria) ===================== */
+$('#isisAuthorBtn').onclick = ()=>{
+  const bg = modal(`<h3>Sobre o sistema</h3><p class="sub" style="text-transform:uppercase;letter-spacing:.16em;font-weight:600">Central KN · Central do Assistente</p>
+    <div style="border:1px solid var(--line);background:var(--wash);border-radius:20px;padding:16px 18px;line-height:1.7">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600">Idealização e desenvolvimento</div>Isis Costa de Mello<br><br>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600">Ano de criação</div>2026</div>
+    <p class="sub" style="text-align:center;margin:14px 0 0">© 2026 Isis Costa de Mello · Identificação de autoria do projeto</p>
+    <div class="acoes" style="justify-content:flex-end;margin-top:12px"><button class="btn sec" id="sFechar">Fechar</button></div>`);
+  bg.querySelector('#sFechar').onclick=()=>bg.remove();
+};
+
+/* ===================== INÍCIO ===================== */
+(async function(){
+  if(SENHA){ try{ const ok = await rpc('kn_dia_login',{p_senha:SENHA}); if(ok!==true){ SENHA=null; try{sessionStorage.removeItem('kn-dia-s');}catch(e){} } }catch(e){} }
+  await carregar();
+  const m = location.hash.match(/app=([0-9a-f-]+)/i);
+  let alvo = m && APPS.find(a=>a.id===m[1]);
+  if(alvo) abrir(alvo);
+  setInterval(()=>{ const el=$('#knLive'); if(el && !el.classList.contains('off') && !el.classList.contains('wait')) marcarConexao(true); }, 30000);
+})();
+</script>
+</body>
+</html>

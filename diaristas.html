@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Diaristas KN</title>
+<!-- © 2026 Isis Costa de Mello · Central KN — Controle de Diaristas -->
+<meta name="author" content="Isis Costa de Mello">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<script>try{if(localStorage.getItem("kn-diaristas-tema")==="claro")document.documentElement.setAttribute("data-tema","claro")}catch(e){}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="kn-painel-visual">
+/* Visual Painel KN · Controle de Diaristas — © 2026 Isis Costa de Mello */
+:root{
+  --bg:#07090d; --ink:#eef2f5; --muted:#8c97a3; --line:rgba(255,255,255,.09); --glass:rgba(22,27,34,.55);
+  --accent:#4cc3ff; --amber:#ffb547; --red:#ff6b6e; --green:#3ddc97; --violet:#a58bff;
+  --wash:rgba(255,255,255,.045); --sep:rgba(255,255,255,.06); --line2:rgba(255,255,255,.25); --ph:rgba(255,255,255,.22);
+  --navbg:rgba(7,9,13,.72); --overlay:rgba(3,5,8,.72); --modal:rgba(14,18,24,.97); --on-accent:#04121b; --pill:#eef2f5; --on-pill:#000;
+  --grain:rgba(255,255,255,.035); --shadow:none; --a1:.10; --a2:.16; --a3:.3;
+  /* apelidos usados pelo código antigo */
+  --blue:var(--accent); --blue-light:var(--accent); --cyan:var(--accent); --navy:var(--ink); --yellow:var(--amber);
+  --gray:var(--muted); --dark:var(--ink); --white:var(--glass); --panel:var(--glass);
+  --f-display:'Unbounded',system-ui,sans-serif; --f-sans:'Onest',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+  color-scheme:dark;
+}
+html[data-tema="claro"]{
+  --bg:#f4f8fc; --ink:#082b4a; --muted:#647e95; --line:#d7e5f1; --glass:#ffffff;
+  --accent:#0b7fe8; --amber:#b45f06; --red:#d33b40; --green:#128a58; --violet:#6d4fd8;
+  --wash:rgba(8,43,74,.04); --sep:rgba(8,43,74,.08); --line2:rgba(8,43,74,.28); --ph:rgba(8,43,74,.35);
+  --navbg:rgba(255,255,255,.88); --overlay:rgba(8,43,74,.35); --modal:#ffffff; --on-accent:#ffffff; --pill:#082b4a; --on-pill:#ffffff;
+  --grain:rgba(8,43,74,.05); --shadow:0 10px 32px rgba(28,73,111,.07); --a1:.07; --a2:.07; --a3:.08;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);transition:background-color .25s ease}
+body{margin:0;font-family:var(--f-sans);font-size:14px;line-height:1.45;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aurora i{position:absolute;border-radius:50%;filter:blur(40px)}
+.aurora i:nth-child(1){width:46vw;height:46vw;left:-12vw;top:-14vw;background:#0e6d9c;opacity:var(--a1)}
+.aurora i:nth-child(2){width:38vw;height:38vw;right:-10vw;top:18vh;background:#b86b12;opacity:var(--a2)}
+.aurora i:nth-child(3){width:50vw;height:40vw;left:30vw;bottom:-22vw;background:#123f7a;opacity:var(--a3)}
+.grain{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(var(--grain) 1px,transparent 1px);background-size:22px 22px}
+.tnum,td,.value,.kn-clock{font-variant-numeric:tabular-nums}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.noscroll::-webkit-scrollbar{display:none}.noscroll{scrollbar-width:none}
+select option{background:var(--modal);color:var(--ink)}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ===== Navegação fixa ===== */
+#topnav{position:fixed;top:0;left:0;right:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:var(--navbg);border-bottom:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+#topnav .navin{max-width:1280px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:default;user-select:none}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.brand .nm{font-family:var(--f-display);font-size:13px;letter-spacing:-.01em;font-weight:500}
+.brand .nm span{color:var(--muted);font-family:var(--f-sans);font-weight:500}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;color:#fff;background:#16a34a;white-space:nowrap;flex-shrink:0}
+.live.off{background:#d33b40}.live.wait{background:#d97706}
+#nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto;padding:4px;border-radius:999px;background:var(--wash);scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+.nav-item{position:relative;flex-shrink:0;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;transition:color .15s,background-color .2s;border:0;background:transparent;font-family:inherit}
+.nav-item:hover{color:var(--ink)}
+.nav-item.active{background:var(--pill);color:var(--on-pill)}
+.nav-item .ic{display:none}
+.icon-btn{flex-shrink:0;width:36px;height:36px;border-radius:50%;border:0;background:var(--wash);color:var(--muted);font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+.icon-btn:hover{color:var(--ink)}
+
+/* ===== Área principal ===== */
+#main{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:88px 16px 40px}
+#pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:8px 4px 20px}
+#pagehead .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600}
+#pageTitle{font-family:var(--f-display);font-weight:500;font-size:clamp(28px,4.4vw,48px);letter-spacing:-.03em;line-height:1.02;margin:6px 0 0;text-wrap:balance}
+#topMeta{font-size:13px;color:var(--muted);max-width:520px}
+#content{position:relative}
+.sig{position:relative;z-index:1;text-align:center;font-size:12px;color:var(--muted);padding:8px 16px 32px}
+.sig button{appearance:none;border:0;background:transparent;padding:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer}
+.sig button:hover{text-decoration:underline}
+.sig .ver{display:block;font-size:11px;opacity:.8;margin-top:2px;font-family:var(--f-mono)}
+
+/* ===== Cartões de vidro ===== */
+.panel,.card,.chart-box{background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.panel{padding:22px 24px;margin-bottom:16px;min-width:0}
+.panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600;margin:0 0 16px}
+.panel h3{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted)!important;font-weight:600;margin:18px 0 10px!important}
+.panel>h3:first-child{margin-top:0!important}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px}
+.card{padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--line2)}
+.card .label{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600}
+.card .value{font-family:var(--f-display);font-weight:500;font-size:34px;letter-spacing:-.03em;line-height:1;margin-top:10px;color:var(--ink)}
+.card.meli .value{color:var(--amber)}.card.kn .value{color:var(--green)}.card.total .value{color:var(--accent)}
+
+/* KPIs do dashboard */
+.kn-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+.kn-kpis .card{--accent-k:var(--accent);padding:16px 18px 10px}
+.kn-kpis .khead{display:flex;justify-content:space-between;align-items:center}
+.kn-kpis .khead span{display:none}
+.kn-kpis .kicon{width:32px;height:32px;border-radius:12px;display:grid;place-items:center;font-size:15px;background:color-mix(in srgb,var(--kc) 14%,transparent);color:var(--kc)}
+.kn-kpis .label{margin-top:12px}
+.kn-kpis .value{color:var(--kc);font-size:36px;margin-top:6px}
+.mini-line{display:block;height:30px;width:100%;margin-top:8px;overflow:visible}
+.mini-line path.line{fill:none;stroke:var(--kc);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.mini-line path.area{fill:color-mix(in srgb,var(--kc) 12%,transparent);stroke:none}
+
+/* Cabeçalho do dashboard */
+.dash-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+.dash-hero .panel{margin:0}
+.hero-main{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.hero-main .kn-day{font-size:13px;color:var(--muted)}
+.hero-main .kn-day b{color:var(--ink);font-weight:600}
+.kn-clock{font-family:var(--f-display);font-weight:500;font-size:clamp(44px,6vw,72px);letter-spacing:-.04em;line-height:.95;color:var(--ink)}
+.kn-quote{font-size:13px;color:var(--muted);text-align:right;line-height:1.4}
+.kn-quote small{display:block;margin-top:4px;font-size:10px;letter-spacing:.2em;font-weight:600;color:var(--accent)}
+.hero-side{display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.hero-stats{display:flex;gap:8px;flex-wrap:wrap}
+#quickResult .alert{margin-top:12px}
+
+/* Tabela do dia */
+.kn-table-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.kn-table-head h2{margin:0}
+.kn-table-search{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.kn-table-search .searchbox{width:300px;max-width:100%}
+.status-present,.status-pending{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.status-present{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
+.status-pending{background:color-mix(in srgb,var(--amber) 13%,transparent);color:var(--amber)}
+
+/* ===== Botões ===== */
+button{cursor:pointer;font-family:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:var(--on-accent);border:1px solid transparent;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;line-height:1.2;transition:filter .15s,border-color .15s,background-color .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.secondary{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
+.btn.secondary:hover{border-color:var(--line2);filter:none}
+.btn.yellow{background:var(--amber);color:#1a1000}
+html[data-tema="claro"] .btn.yellow{color:#fff}
+.btn.danger,.btn.secondary.danger{background:transparent;color:var(--red)!important;border-color:color-mix(in srgb,var(--red) 35%,transparent)!important}
+.btn.danger:hover{background:color-mix(in srgb,var(--red) 10%,transparent);filter:none}
+.btn.sm{padding:5px 12px;font-size:12px}
+.btn.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn[style*="var(--red)"]{background:transparent}
+.link{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:500}
+.link:hover{text-decoration:underline}
+
+/* ===== Campos ===== */
+input,select,textarea{font-family:inherit;font-size:14px;padding:9px 14px;border:1px solid var(--line);border-radius:16px;background:var(--wash);color:var(--ink);transition:border-color .15s;max-width:100%}
+input::placeholder,textarea::placeholder{color:var(--ph)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input[type=checkbox],input[type=radio]{width:16px;height:16px;padding:0;accent-color:var(--accent);vertical-align:middle}
+input[type=date]{min-height:40px}
+input[type=file]{border-style:dashed}
+label{font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:6px}
+.field{margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.searchbox{width:100%;padding:11px 16px;font-size:14px;border-radius:999px}
+.dist-input,.abs-input{padding:5px 10px!important;border-radius:12px!important;font-size:13px!important;text-align:center}
+
+/* ===== Tabelas ===== */
+.table-wrap{overflow-x:auto;border-radius:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);padding:10px 12px;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line);white-space:nowrap;background:transparent}
+td{padding:10px 12px;border-bottom:1px solid var(--sep);white-space:nowrap;color:var(--ink)}
+tbody tr{transition:background-color .12s}
+tbody tr:hover td{background:var(--wash)}
+tbody tr:last-child td{border-bottom:0}
+table.table-compact{width:auto;min-width:100%}
+table.table-compact th,table.table-compact td{padding:9px 10px}
+.abs-table th,.abs-table td{font-size:12px!important;padding:7px 9px!important}
+.abs-table .abs-date-start td{border-top:1px solid color-mix(in srgb,var(--accent) 40%,transparent)!important;background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.abs-table .abs-date-start td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.colcopy{cursor:pointer;opacity:.4;font-size:11px;margin-left:4px;user-select:none;color:var(--accent)}
+.colcopy:hover{opacity:1}
+.rowSel{accent-color:var(--accent)}
+
+/* ===== Pílulas ===== */
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap;background:var(--wash);color:var(--muted)}
+.pill.ativo,.pill.encontrado{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
+.pill.inativo,.pill.duplicidade{background:color-mix(in srgb,var(--red) 13%,transparent);color:var(--red)}
+.pill.novo{background:color-mix(in srgb,var(--amber) 13%,transparent);color:var(--amber)}
+.pill.empresa{background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
+.pill.empresa.meli{background:color-mix(in srgb,var(--amber) 13%,transparent);color:var(--amber)}
+.pill.empresa.kn{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
+.pill.empresa.tsi{background:color-mix(in srgb,var(--violet) 14%,transparent);color:var(--violet)}
+.chip{display:inline-flex;align-items:center;background:var(--wash);border:1px solid var(--line);padding:4px 11px;border-radius:999px;font-size:12px;margin:2px;color:var(--ink)}
+.badge-count{background:var(--amber);color:#1a1000;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
+
+/* ===== Alertas e toast ===== */
+.alert{padding:11px 16px;border-radius:16px;font-size:13px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;background:var(--wash);color:var(--ink)}
+.alert.ok{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
+.alert.warn{background:color-mix(in srgb,var(--amber) 13%,transparent);color:var(--amber)}
+.alert.err{background:color-mix(in srgb,var(--red) 12%,transparent);color:var(--red)}
+.alert.info{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.alert b,.alert strong{color:inherit}
+.kn-toast{position:fixed!important;left:50%!important;right:auto!important;bottom:24px!important;transform:translateX(-50%);z-index:999!important;min-width:0!important;max-width:min(560px,calc(100vw - 32px));border-radius:999px!important;padding:11px 20px!important;background:var(--modal)!important;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.35)!important;backdrop-filter:blur(14px);animation:toastIn .25s ease;font-weight:500}
+.kn-toast.ok{color:var(--green)!important}.kn-toast.warn{color:var(--amber)!important}.kn-toast.err{color:var(--red)!important}.kn-toast.info{color:var(--ink)!important}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ===== Modais ===== */
+.modal-bg{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;animation:fadeIn .18s ease}
+.modal{background:var(--modal);color:var(--ink);border:1px solid var(--line);border-radius:28px;width:500px;max-width:100%;max-height:88vh;overflow:auto;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.45);animation:popIn .22s cubic-bezier(.2,.9,.3,1.2)}
+.modal h3{margin-top:0;font-family:var(--f-display);font-weight:500;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+.modal-close{float:right;cursor:pointer;font-size:20px;color:var(--muted);width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--wash);line-height:1}
+.modal-close:hover{color:var(--ink)}
+.diarista-modal{width:540px}
+.diarista-modal .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.diarista-modal .modal-title{font-family:var(--f-display);font-weight:500;font-size:20px;letter-spacing:-.02em}
+.diarista-modal .modal-subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+.diarista-modal .modal-close{float:none}
+.modal-theme-row{display:none!important}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+
+/* Sobre o sistema */
+.about-isis{width:min(460px,100%)}
+.about-isis h3{margin:0 0 4px}
+.about-isis .about-project{font-size:12px;color:var(--muted);margin-bottom:18px;text-transform:uppercase;letter-spacing:.16em;font-weight:600}
+.about-isis .about-box{border:1px solid var(--line);background:var(--wash);border-radius:20px;padding:16px 18px;margin:10px 0;font-size:14px;line-height:1.7}
+.about-isis strong{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+.about-isis .copyright{text-align:center;color:var(--muted);font-size:11px;margin-top:16px}
+
+/* ===== Abas internas ===== */
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--wash);margin-bottom:16px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tab{padding:6px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-radius:999px;font-weight:500;white-space:nowrap;transition:color .15s}
+.tab:hover{color:var(--ink)}
+.tab.active{background:var(--pill);color:var(--on-pill)}
+
+/* ===== Importação ===== */
+.stepper{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.step{flex:1;min-width:120px;text-align:center;padding:8px 10px;font-size:12px;color:var(--muted);border-radius:999px;background:var(--wash);font-weight:500;border:1px solid transparent}
+.step.active{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.step.done{color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent)}
+.dropzone{border:1.5px dashed var(--line2);border-radius:24px;padding:36px;text-align:center;color:var(--muted);cursor:pointer;background:var(--wash);transition:border-color .15s}
+.dropzone:hover{border-color:var(--accent);color:var(--ink)}
+.import-status-white{background:var(--wash)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+
+/* ===== QR Code ===== */
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.qr-item{background:var(--glass)!important;border:1px solid var(--line)!important;border-radius:24px!important;padding:16px!important;text-align:center;cursor:pointer;transition:border-color .15s}
+.qr-item:hover{border-color:var(--line2)!important}
+.qr-item.sel{border-color:var(--accent)!important;box-shadow:0 0 0 1px var(--accent) inset!important}
+.qcanvas{display:inline-block;padding:8px;background:#fff;border-radius:14px;margin-bottom:10px}
+.qcanvas img,.qcanvas canvas{display:block;margin:0!important}
+.qr-item .qname{font-weight:600;font-size:13px;color:var(--ink)!important}
+.qr-item .qmeta{font-size:11.5px;color:var(--muted)!important;margin-top:2px;font-family:var(--f-mono)}
+.qr-empty{color:var(--muted)!important}
+
+/* ===== Utilitários ===== */
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.right{text-align:right}
+.flex{display:flex;align-items:center}
+.gap8{gap:8px}.gap12{gap:12px}
+.between{justify-content:space-between}
+.mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}
+.mb0{margin-bottom:0}
+.w100{width:100%}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+strong,b{font-weight:600}
+code{font-family:var(--f-mono);font-size:12px;background:var(--wash);padding:1px 6px;border-radius:6px}
+.chart-svg text,.donut-svg text{fill:var(--muted)}
+
+@media (max-width:1100px){.kn-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:860px){
+  .dash-hero{grid-template-columns:1fr}
+  .kn-quote{text-align:left}
+  .live{display:none}
+  .brand .nm span{display:none}
+}
+@media (max-width:640px){
+  #topnav .navin{gap:8px;padding:0 10px}
+  .nav-item{padding:6px 11px;font-size:12.5px}
+  #main{padding-top:76px}
+  .panel{padding:18px;border-radius:20px}
+  .kn-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2,.grid3,.grid4{grid-template-columns:1fr}
+  .kn-table-search .searchbox{width:100%}
+  .icon-btn{width:32px;height:32px}
+}
+@media print{
+  #topnav,.aurora,.grain,.sig{display:none!important}
+  #main{padding:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.icon-btn.on{background:var(--pill);color:var(--on-pill)}
+:root{--pink:#e08bff;--violet:#8f9bff}
+html[data-tema="claro"]{--pink:#a43cc4;--violet:#5146d8}
+.panel h3{font-size:11px!important;color:var(--muted)!important}
+.flex > .btn[style*="align-self:end"]{height:40px;padding:0 16px}
+.qr-empty{grid-column:1/-1;padding:40px!important}
+
+
+/* ===== Modo consulta (sem senha) ===== */
+.acesso-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;border:0;cursor:pointer;font-family:inherit;white-space:nowrap;background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}
+.acesso-btn.admin{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+body.consulta #cfgBtn,
+body.consulta #btnNovo,body.consulta #btnImportarBanco,body.consulta [data-edit],body.consulta #editFicha,
+body.consulta #dashZerarBatidas,body.consulta #zerarBatidasBtn,body.consulta #delSelected,body.consulta [data-del],
+body.consulta #selAllHist,body.consulta .rowSel{display:none!important}
+body.consulta #hTable th:first-child,body.consulta #hTable td:first-child{display:none}
+body.consulta .dist-input,body.consulta .abs-input{background:transparent!important;border-color:transparent!important;color:var(--ink)!important;-webkit-text-fill-color:var(--ink);opacity:1;cursor:default;-moz-appearance:textfield}
+body.consulta .dist-input::-webkit-inner-spin-button,body.consulta .abs-input::-webkit-inner-spin-button{display:none}
+@media (max-width:640px){.acesso-btn{font-size:0;padding:0;width:32px;height:32px;justify-content:center}.acesso-btn::first-letter{font-size:14px}}
+
+.dia-nav{display:flex;align-items:center;gap:6px}
+.dia-nav input{flex:1;min-width:0}
+.dia-nav .icon-btn{font-size:20px;line-height:1}
+.dia-nav .icon-btn:disabled,.dia-nav .btn:disabled{opacity:.35;cursor:default}
+
+.reg-tipos{margin-bottom:12px}
+.reg-filtros{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) auto;gap:12px;align-items:end;padding:16px 20px}
+.reg-filtros select{width:100%}
+.reg-grid{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}
+.reg-grid .panel{margin:0}
+.reg-dias{position:sticky;top:76px}
+.reg-lista{display:flex;flex-direction:column;gap:6px;max-height:58vh;overflow:auto;margin:0 -6px;padding:0 6px}
+.reg-dia{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:4px 10px;width:100%;text-align:left;padding:10px 12px;border-radius:16px;border:1px solid transparent;background:var(--wash);color:var(--ink);font-family:inherit;cursor:pointer;transition:border-color .15s,background-color .15s}
+.reg-dia:hover{border-color:var(--line2)}
+.reg-dia.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.reg-dia.fds{box-shadow:inset 3px 0 0 var(--amber)}
+.rd-data b{font-family:var(--f-display);font-weight:500;font-size:16px;letter-spacing:-.02em;display:block}
+.rd-data small,.rd-num small{display:block;white-space:nowrap;font-size:11px;color:var(--muted)}
+.reg-dia.fds .rd-data small{color:var(--amber)}
+.rd-num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.rd-resp{grid-column:1/-1;font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:4px;border-top:1px solid var(--sep);margin-top:4px}
+.rd-resp.vazio{color:var(--muted);font-style:italic}
+.plantao-box.util{background:var(--wash);border-color:var(--line)}
+.plantao-box.util .pl-ic{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.plantao-box.util .pl-txt span{color:var(--muted)}
+.plantao-box{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:18px;margin:2px 0 14px;background:color-mix(in srgb,var(--amber) 9%,transparent);border:1px solid color-mix(in srgb,var(--amber) 25%,transparent)}
+.pl-ic{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--amber) 16%,transparent);flex-shrink:0}
+.pl-txt{flex:1;min-width:0}
+.pl-txt span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);font-weight:600}
+.pl-txt b{display:block;font-family:var(--f-display);font-weight:500;font-size:20px;margin-top:4px;letter-spacing:-.01em}
+.reg-titulo{font-family:var(--f-display);font-weight:500;font-size:24px;letter-spacing:-.02em}
+.reg-stats{display:grid;grid-template-columns:4fr 2fr 3fr;gap:12px;margin:6px 0 20px}
+.rs-grupo{background:var(--wash);border-radius:18px;padding:14px 16px 12px}
+.rs-tit{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600;margin-bottom:10px}
+.rs-itens{display:flex;gap:6px}
+.rs-itens>div{flex:1;min-width:0;text-align:center;padding:4px 2px}
+.rs-itens>div+div{border-left:1px solid var(--line)}
+.rs-itens b{display:block;font-family:var(--f-display);font-weight:500;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.rs-itens small{display:block;font-size:11.5px;color:var(--muted);margin-top:4px;white-space:nowrap}
+#regDet table{font-size:12.5px}
+#regDet th,#regDet td{padding:12px 12px}
+#regDet th{padding-top:8px}
+#regDet td.reg-nome{white-space:normal;min-width:170px;line-height:1.3}
+body.consulta .reg-cpf{display:none}
+.reg-edit-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 12px}
+table.reg-editavel td{padding:6px 6px!important;vertical-align:middle}
+table.reg-editavel select,table.reg-editavel input{padding:6px 10px;border-radius:12px;font-size:12.5px;min-height:34px}
+table.reg-editavel input[type=time]{width:88px;padding:6px 6px}
+table.reg-editavel input[type=time]::-webkit-calendar-picker-indicator{display:none}
+table.reg-editavel td.reg-nome{min-width:130px}
+table.reg-editavel select{padding-right:4px}
+table.reg-editavel .reg-obs-in{width:130px}
+table.reg-editavel .salvo{border-color:var(--green)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 25%,transparent)}
+.reg-obs{white-space:normal;max-width:220px;color:var(--muted)}
+.reg-del{width:30px;height:30px;border-radius:50%;border:1px solid color-mix(in srgb,var(--red) 35%,transparent);background:transparent;color:var(--red);cursor:pointer;font-size:12px}
+.reg-del:hover{background:color-mix(in srgb,var(--red) 12%,transparent)}
+.reg-add{margin-top:16px;padding:14px 16px;border-radius:18px;border:1px dashed var(--line2);background:var(--wash)}
+.reg-add-campos{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (min-width:1360px){#main{max-width:1440px}}
+@media (max-width:1100px){.reg-filtros{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.reg-grid{grid-template-columns:1fr}.reg-dias{position:static}.reg-lista{max-height:none;flex-direction:row;overflow-x:auto}.reg-dia{min-width:230px}.reg-stats{grid-template-columns:1fr}}
+@media (max-width:640px){.reg-filtros{grid-template-columns:1fr 1fr}}
+
+body.consulta #acessoBtn{display:none!important}
+.brand{-webkit-tap-highlight-color:transparent}
+
+.aurora i{filter:none!important}
+
+.hist-vazio{text-align:center;padding:36px 16px;border:1px dashed var(--line2);border-radius:20px;background:var(--wash)}
+.hist-vazio b{display:block;font-size:15px;font-weight:600}
+.hist-vazio span{display:block;font-size:13px;color:var(--muted);margin-top:6px}
+body.consulta .hist-cpf{display:none}
+
+.hist-filtros{display:grid;grid-template-columns:minmax(200px,2.2fr) repeat(2,minmax(128px,1fr)) repeat(3,minmax(92px,.8fr)) auto;gap:8px;align-items:end}
+.hist-filtros label{font-size:11px;margin-bottom:4px}
+.hist-filtros input,.hist-filtros select{width:100%;padding:7px 10px;font-size:13px;border-radius:12px;min-height:36px}
+.hist-filtros input[type=date]{padding:6px 8px}
+.hf-botoes{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.hf-botoes .btn{min-height:36px}
+.hf-botoes #applyFilters{display:none!important}
+.hf-botoes #delSelected{display:none}
+.hf-botoes #delSelected:not(:disabled){display:inline-flex}
+@media (max-width:1100px){.hist-filtros{grid-template-columns:1fr 1fr 1fr}.hf-busca{grid-column:1/-1}.hf-botoes{grid-column:1/-1}}
+@media (max-width:640px){.hist-filtros{grid-template-columns:1fr 1fr}}
+
+.lexp-filtros{display:flex;gap:8px;align-items:flex-end;flex-wrap:nowrap;margin:4px 0 14px}
+.lexp-filtros .field{flex:1 1 0;min-width:0}
+.lexp-filtros .lexp-motivo{flex:1.6 1 0}
+.lexp-filtros .lexp-grupo{flex:0 0 76px}
+.lexp-filtros label{font-size:11px;margin-bottom:4px;white-space:nowrap}
+.lexp-filtros input,.lexp-filtros select{width:100%;padding:7px 10px;font-size:13px;border-radius:12px;min-height:36px}
+.lexp-filtros input[type=date]{padding:6px 8px}
+.lexp-filtros #lExportXlsx{flex:0 0 auto;min-height:36px;white-space:nowrap}
+@media (max-width:1100px){.lexp-filtros{flex-wrap:wrap}.lexp-filtros .field{flex:1 1 160px}}
+</style>
+</head>
+<!--
+  Central KN — Controle de Diaristas
+  Idealização e desenvolvimento: Isis Costa de Mello
+  © 2026 Isis Costa de Mello
+  Identificação de autoria da interface e implementação deste projeto.
+-->
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+<header id="topnav">
+  <nav class="navin">
+    <div class="brand" id="knBrand" title="Central KN · Controle de Diaristas"><span class="dot"></span><span class="nm">KN<span> · Diaristas</span></span></div>
+    <span class="live wait" id="knLive">● conectando…</span>
+    <div id="nav" role="tablist"></div>
+    <button type="button" id="themeToggle" class="icon-btn" title="Versão clara" aria-label="Alternar tema claro/escuro">☀</button>
+    <button type="button" id="cfgBtn" class="icon-btn" title="Configurações" aria-label="Configurações">⚙</button>
+    <button type="button" id="acessoBtn" class="acesso-btn" title="Administração ativa — clique para sair ou trocar a senha">🔓 Admin</button>
+  </nav>
+</header>
+<main id="main">
+  <div id="pagehead">
+    <div><div class="eyebrow">Central KN · Controle de Diaristas</div><h1 id="pageTitle">Dashboard</h1></div>
+    <div id="topMeta"></div>
+  </div>
+  <div id="content"></div>
+</main>
+<footer class="sig"><div class="isis-author">Desenvolvido por <button type="button" id="isisAuthorBtn">Isis Costa de Mello</button> · © 2026</div><span class="ver">v1.1 · Banco novo: kuehne-diaristas</span></footer>
+
+<script>
+/* ===================== SUPABASE CONNECTION ===================== */
+const SUPABASE_URL = 'https://wimqujskqgabjboihiei.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_9fcTqUHHJK8R3ebe_l1lXQ_LQwmWWlI';
+let sb = null;
+try{
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}catch(e){
+  console.error('Falha ao iniciar conexao com o banco (Supabase):', e);
+}
+
+const COLUNAS_PUBLICAS = {
+  diaristas: 'id,nome,empresa,groot_id,ext,cargo,status,nome_normalizado,created_at,updated_at',
+  historico_diarias: 'id,diarista_id,data,dia_semana,turno,horario_entrada,nome,groot_id,empresa,cargo,ldap,qr_entrada_batida_em,qr_saida_batida_em,created_at,observacao',
+};
+async function sbSelect(table){
+  if(isAdmin()){
+    const r = await sb.rpc('kn_dia_read', {p_senha:ADMIN_SENHA, p_tabela:table});
+    if(!r.error && Array.isArray(r.data)) return r.data;
+    if(r.data && r.data.erro){ ADMIN_SENHA=null; try{sessionStorage.removeItem('kn-dia-s');}catch(e){} toast(r.data.erro,'err'); }
+  }
+  const {data, error} = await sb.from(table).select(COLUNAS_PUBLICAS[table] || '*');
+  if(error){ console.error('Erro ao carregar '+table, error); toast('Erro ao carregar dados do banco ('+table+'): '+error.message,'err'); return []; }
+  return data || [];
+}
+// Busca um diarista direto no banco pelo CPF (não depende da lista DIARISTAS carregada em memória,
+// que pode estar desatualizada se o cadastro foi feito depois que a página foi aberta).
+async function sbFindDiaristaByCPF(cpf){
+  const n = normalizeCPF(cpf);
+  if(!n || !isAdmin()) return null;
+  { const lista = await sbSelect('diaristas'); return lista.find(d=>normalizeCPF(d.cpf)===n) || null; }
+  const {data, error} = await sb.from('diaristas').select('*').eq('cpf', n).limit(1);
+  if(error){ console.error('Erro ao buscar diarista por CPF no banco', error); return null; }
+  return (data && data[0]) || null;
+}
+/* ===================== ACESSO: CONSULTA x ADMINISTRAÇÃO =====================
+   Sem senha o app abre só para consulta (pesquisar e baixar arquivos).
+   Toda gravação passa pela função kn_dia_write do banco, que confere a senha
+   lá no Supabase — a senha não fica escrita neste arquivo. */
+let ADMIN_SENHA = null;
+try{ ADMIN_SENHA = sessionStorage.getItem('kn-dia-s'); }catch(e){}
+function isAdmin(){ return !!ADMIN_SENHA; }
+function sairAdmin(silencioso){
+  ADMIN_SENHA = null;
+  try{ sessionStorage.removeItem('kn-dia-s'); }catch(e){}
+  if(!silencioso) toast('Saiu da administração. Modo consulta ativo.','info');
+  if(typeof boot==='function') boot();
+}
+async function kdw(table, acao, id, dados){
+  if(!isAdmin()){ toast('Ação não disponível.','warn'); return {erro:true}; }
+  const {data, error} = await sb.rpc('kn_dia_write', {p_senha:ADMIN_SENHA, p_tabela:table, p_acao:acao, p_id:id==null?null:String(id), p_dados:dados==null?null:dados});
+  if(error){ console.error('Erro ao gravar em '+table, error); toast('Erro ao gravar ('+table+'): '+error.message,'err'); return {erro:true}; }
+  if(data && data.erro){ toast(data.erro,'err'); sairAdmin(true); return {erro:true}; }
+  return {data};
+}
+async function sbInsert(table, row){ const r = await kdw(table,'insert',null,row); return r.erro ? null : r.data; }
+async function sbInsertMany(table, rows){ if(!rows.length) return []; const r = await kdw(table,'insert_many',null,rows); return r.erro ? [] : (r.data||[]); }
+async function sbUpdate(table, id, patch){ const r = await kdw(table,'update',id,patch); return r.erro ? null : r.data; }
+async function sbDelete(table, id){ if(!isAdmin()) return false; const r = await kdw(table,'delete',id,null); return !r.erro; }
+
+let DIARISTAS = [];
+let HISTORICO = [];
+let IMPORTS = [];
+let DIST_DIARIA = []; // [{id, data, meli, kn, updated_at}] - divisão diária MELI x KN decidida com o cliente
+let LOADED = false;
+
+function distDia(dataISO){
+  return DIST_DIARIA.find(d=>d.data===dataISO);
+}
+
+async function salvarDistribuicaoDia(dataISO, meli, kn){
+  const patch = {meli, kn, updated_at:new Date().toISOString()};
+  const existente = distDia(dataISO);
+  if(existente){
+    const upd = await sbUpdate('distribuicao_diaria', existente.id, patch);
+    if(!upd) return false;
+    Object.assign(existente, patch);
+  } else {
+    const inserted = await sbInsert('distribuicao_diaria', {data:dataISO, ...patch});
+    if(!inserted) return false;
+    DIST_DIARIA.push(inserted);
+  }
+  return true;
+}
+
+// Liga os inputs .dist-input de um container: ao editar MELI ou KN de um dia,
+// calcula automaticamente o restante para a outra empresa (com base no Total do dia) e salva.
+function attachDistInputHandler(container){
+  container.addEventListener('change', async (e)=>{
+    const inp = e.target.closest('.dist-input');
+    if(!inp) return;
+    const dataISO = inp.dataset.data;
+    const total = parseInt(inp.dataset.total)||0;
+    let val = parseInt(inp.value);
+    if(isNaN(val) || val<0) val = 0;
+    if(val>total) val = total;
+    inp.value = val;
+    const outro = total - val;
+    const campo = inp.dataset.campo;
+    const outroCampo = campo==='meli' ? 'kn' : 'meli';
+    const outroInput = container.querySelector(`.dist-input[data-data="${CSS.escape(dataISO)}"][data-campo="${outroCampo}"]`);
+    if(outroInput) outroInput.value = outro;
+    const meli = campo==='meli' ? val : outro;
+    const kn = campo==='kn' ? val : outro;
+    const ok = await salvarDistribuicaoDia(dataISO, meli, kn);
+    if(ok) toast('Distribuição de '+fmtDateBR(dataISO)+' salva.','ok');
+  });
+}
+
+
+/* ===================== UTILS ===================== */
+function uid(){ return 'id_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function onlyDigits(s){ return (s||'').toString().replace(/\D/g,''); }
+function normalizeCPF(s){ return onlyDigits(s); }
+function formatCPF(cpf){
+  if(!cpf && typeof isAdmin==='function' && !isAdmin()) return '•••.•••.•••-••';
+  const d = onlyDigits(cpf);
+  if(d.length!==11) return cpf || '';
+  return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+}
+function maskCPF(cpf){
+  const d = onlyDigits(cpf);
+  if(d.length!==11) return cpf||'';
+  return d.slice(0,3)+'.***.***-'+d.slice(9);
+}
+function normalizeName(s){
+  return (s||'').toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().replace(/\s+/g,' ').trim();
+}
+const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+function diaSemana(dataISO){
+  const [y,m,d] = dataISO.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return DIAS_SEMANA[dt.getDay()];
+}
+function fmtDateBR(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function toast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'alert kn-toast '+(type||'info');
+  el.style.position='fixed'; el.style.bottom='20px'; el.style.right='20px'; el.style.zIndex=999; el.style.minWidth='260px';
+  el.style.boxShadow='0 4px 14px rgba(0,0,0,.15)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtBatida(iso, dataISO){
+  if(!iso) return '-';
+  const d = new Date(iso); if(isNaN(d)) return '-';
+  const h = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const dia = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return (dataISO && dia!==dataISO) ? h+' ('+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+')' : h;
+}
+function diasComLancamento(){
+  return Array.from(new Set(HISTORICO.map(h=>h.data).filter(Boolean))).sort().reverse();
+}
+function dataPadraoDash(){
+  const hoje = todayISO();
+  if(HISTORICO.some(h=>h.data===hoje)) return hoje;
+  const ant = diasComLancamento().find(d=>d<=hoje);
+  return ant || hoje;
+}
+function fmtHora(iso){
+  if(!iso) return '-';
+  try{
+    const d = new Date(iso);
+    return d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }catch(e){ return '-'; }
+}
+
+function findDiaristaByCPF(cpf){
+  const n = normalizeCPF(cpf);
+  if(!n) return null;
+  return DIARISTAS.find(d=>normalizeCPF(d.cpf)===n) || null;
+}
+function findDiaristaByName(nome){
+  const n = normalizeName(nome);
+  if(!n) return null;
+  return DIARISTAS.find(d=>normalizeName(d.nome)===n) || null;
+}
+
+/* ===================== APP STATE / ROUTING ===================== */
+const VIEWS = [
+  {id:'dashboard', label:'Dashboard', icon:'&#128202;'},
+  {id:'banco', label:'Banco', icon:'&#128100;'},
+  {id:'importar', label:'Importar', icon:'&#8593;', priv:true},
+  {id:'registros', label:'Registros', icon:'&#128203;'},
+  {id:'controle', label:'Controle', icon:'&#128197;'},
+  {id:'qrcode', label:'QR Code', icon:'&#128241;', priv:true},
+];
+let KN_PRIVATE = false;
+try{ KN_PRIVATE = localStorage.getItem('kn-diaristas-extras')==='1'; }catch(e){}
+function toggleExtras(){
+  KN_PRIVATE = !KN_PRIVATE;
+  try{ localStorage.setItem('kn-diaristas-extras', KN_PRIVATE?'1':'0'); }catch(e){}
+  if(!KN_PRIVATE && VIEWS.some(v=>v.priv && v.id===currentView)) currentView='dashboard';
+  toast(KN_PRIVATE?'Importar e QR Code visíveis.':'Importar e QR Code ocultos.','info');
+  navigate();
+}
+let currentView = 'dashboard';
+let fichaDiaristaId = null;
+
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = VIEWS.filter(v=>(!v.priv || KN_PRIVATE || v.id===currentView) && (isAdmin() || v.id!=='importar')).map(v=>`<button type="button" role="tab" aria-selected="${v.id===currentView}" class="nav-item ${v.id===currentView?'active':''}" data-view="${v.id}">${v.label}</button>`).join('');
+  const cfg = document.getElementById('cfgBtn'); if(cfg) cfg.classList.toggle('on', currentView==='config');
+  nav.querySelectorAll('.nav-item').forEach(el=>{
+    el.addEventListener('click', ()=>{ currentView = el.dataset.view; fichaDiaristaId=null; navigate(); });
+  });
+}
+function setTitle(t, meta){
+  document.getElementById('pageTitle').textContent = t;
+  document.getElementById('topMeta').textContent = meta||'';
+  document.title = t + ' · Controle de Diaristas KN';
+}
+function navigate(){
+  if(!isAdmin() && (currentView==='importar' || currentView==='config')) currentView='dashboard';
+  document.body.classList.toggle('consulta', !isAdmin());
+  atualizarBotaoAcesso();
+  renderNav();
+  const c = document.getElementById('content');
+  c.innerHTML = '';
+  if(currentView==='dashboard') renderDashboard(c);
+  else if(currentView==='banco') renderBanco(c);
+  else if(currentView==='importar') renderImportar(c);
+  else if(currentView==='registros') renderRegistros(c);
+  else if(currentView==='controle') renderControleArea(c);
+  else if(currentView==='qrcode') renderQrCode(c);
+  else if(currentView==='config') renderConfig(c);
+}
+
+/* ===================== QR CODE (crachá para ponto eletrônico) ===================== */
+function renderQrCode(c){
+  setTitle('QR Code', 'Gere o QR Code (GROOT ID) de cada diarista para bater ponto no equipamento');
+  const state = renderQrCode._state || (renderQrCode._state = {q:'', selected:new Set(), onlyAtivos:true});
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="panel" style="margin-bottom:14px;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input id="qrQ" placeholder="Buscar por nome, CPF ou GROOT ID" value="${esc(state.q)}" style="width:260px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin:0;">
+          <input type="checkbox" id="qrOnlyAtivos" ${state.onlyAtivos?'checked':''}> Somente ativos
+        </label>
+        <div style="flex:1"></div>
+        <button class="btn secondary" id="qrSelAll">Selecionar todos (filtrados)</button>
+        <button class="btn secondary" id="qrSelNone">Limpar seleção</button>
+        <button class="btn btn-primary" id="qrPrint">&#128424; Imprimir selecionados</button>
+      </div>
+    </div>
+    <div id="qrGrid" class="qr-grid"></div>
+  `;
+  c.appendChild(wrap);
+
+  if(!document.getElementById('qrStyleTag')){
+    const st = document.createElement('style');
+    st.id = 'qrStyleTag';
+    st.textContent = `
+      .qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+      .qr-item{background:var(--panel,#0e2733);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:.15s;}
+      .qr-item:hover{border-color:var(--blue,#005B82);}
+      .qr-item.sel{border-color:var(--yellow,#F5C400);box-shadow:0 0 0 1px var(--yellow,#F5C400) inset;}
+      .qr-item canvas,.qr-item img{margin:0 auto 8px;}
+      .qr-item .qname{font-weight:600;font-size:13px;color:#fff;}
+      .qr-item .qmeta{font-size:11.5px;color:#9fb3bd;margin-top:2px;}
+      .qr-item .qcheck{margin-top:8px;}
+      .qr-empty{color:#9fb3bd;font-size:13px;padding:20px;text-align:center;}
+      @media print{
+        body *{visibility:hidden;}
+        #qrPrintArea, #qrPrintArea *{visibility:visible;}
+        #qrPrintArea{position:absolute;left:0;top:0;width:100%;}
+        .qr-print-card{page-break-inside:avoid;display:inline-block;width:220px;border:1px dashed #999;border-radius:8px;padding:14px;margin:8px;text-align:center;}
+        .qr-print-card .qname{font-weight:700;font-size:14px;}
+        .qr-print-card .qmeta{font-size:12px;color:#333;margin-top:2px;}
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function listaFiltrada(){
+    const q = normalizeName(state.q);
+    const qd = onlyDigits(state.q);
+    return DIARISTAS.filter(d=>{
+      if(state.onlyAtivos && d.status && d.status!=='ATIVO') return false;
+      if(!d.groot_id) return false;
+      if(!state.q) return true;
+      return normalizeName(d.nome).includes(q) || (qd && onlyDigits(d.cpf).includes(qd)) || (d.groot_id||'').toLowerCase().includes(state.q.toLowerCase());
+    }).sort((a,b)=>normalizeName(a.nome).localeCompare(normalizeName(b.nome)));
+  }
+
+  function renderGrid(){
+    const grid = wrap.querySelector('#qrGrid');
+    const lista = listaFiltrada();
+    if(lista.length===0){
+      grid.innerHTML = `<div class="qr-empty">Nenhum diarista com GROOT ID cadastrado encontrado. Cadastre o GROOT ID no Banco de Diaristas primeiro.</div>`;
+      return;
+    }
+    grid.innerHTML = lista.map(d=>`
+      <div class="qr-item ${state.selected.has(d.id)?'sel':''}" data-id="${d.id}">
+        <div class="qcanvas" data-groot="${esc(d.groot_id)}"></div>
+        <div class="qname">${esc(d.nome)}</div>
+        <div class="qmeta">GROOT ${esc(d.groot_id)} · ${esc(d.empresa||'-')}</div>
+        <div class="qcheck"><input type="checkbox" ${state.selected.has(d.id)?'checked':''} data-chk="${d.id}"></div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.qcanvas').forEach(el=>{
+      new QRCode(el, {text: el.dataset.groot, width:120, height:120, colorDark:'#0b1f28', colorLight:'#ffffff'});
+    });
+    grid.querySelectorAll('.qr-item').forEach(el=>{
+      el.addEventListener('click', (ev)=>{
+        const id = el.dataset.id;
+        if(state.selected.has(id)) state.selected.delete(id); else state.selected.add(id);
+        renderGrid();
+      });
+    });
+  }
+
+  wrap.querySelector('#qrQ').addEventListener('input', (e)=>{ state.q = e.target.value; renderGrid(); });
+  wrap.querySelector('#qrOnlyAtivos').addEventListener('change', (e)=>{ state.onlyAtivos = e.target.checked; renderGrid(); });
+  wrap.querySelector('#qrSelAll').addEventListener('click', ()=>{ listaFiltrada().forEach(d=>state.selected.add(d.id)); renderGrid(); });
+  wrap.querySelector('#qrSelNone').addEventListener('click', ()=>{ state.selected.clear(); renderGrid(); });
+  wrap.querySelector('#qrPrint').addEventListener('click', ()=>{
+    const selecionados = DIARISTAS.filter(d=>state.selected.has(d.id));
+    if(selecionados.length===0){ alert('Selecione ao menos um diarista para imprimir.'); return; }
+    let area = document.getElementById('qrPrintArea');
+    if(area) area.remove();
+    area = document.createElement('div');
+    area.id = 'qrPrintArea';
+    area.style.display = 'none';
+    document.body.appendChild(area);
+    selecionados.forEach(d=>{
+      const card = document.createElement('div');
+      card.className = 'qr-print-card';
+      const qdiv = document.createElement('div');
+      card.appendChild(qdiv);
+      const qname = document.createElement('div');
+      qname.className = 'qname';
+      qname.textContent = d.nome;
+      card.appendChild(qname);
+      const qmeta = document.createElement('div');
+      qmeta.className = 'qmeta';
+      qmeta.textContent = `GROOT ${d.groot_id} · CPF ${d.cpf||'-'}`;
+      card.appendChild(qmeta);
+      area.appendChild(card);
+      new QRCode(qdiv, {text: d.groot_id, width:130, height:130, colorDark:'#000000', colorLight:'#ffffff'});
+    });
+    setTimeout(()=>{ window.print(); }, 200);
+  });
+
+  renderGrid();
+}
+
+/* ===================== CONTROLE DIÁRIO / HISTÓRICO / RELATÓRIOS (abas) ===================== */
+function renderControleArea(c){
+  const tabState = renderControleArea._tab || 'controle';
+  renderControleArea._tab = tabState;
+  const titulos = {
+    controle: ['Controle Diário', 'Totais calculados automaticamente a partir do histórico'],
+    historico: ['Histórico', HISTORICO.length+' lançamentos registrados'],
+    relatorios: ['Relatórios', 'Resumo mensal com indicadores e gráficos'],
+  };
+  setTitle(titulos[tabState][0], titulos[tabState][1]);
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div class="tabs">
+      <div class="tab ${tabState==='controle'?'active':''}" data-t="controle">Controle Diário</div>
+      <div class="tab ${tabState==='historico'?'active':''}" data-t="historico">Histórico</div>
+      <div class="tab ${tabState==='relatorios'?'active':''}" data-t="relatorios">Relatórios</div>
+    </div><div id="areaBody"></div>`;
+  c.appendChild(wrap);
+  wrap.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ renderControleArea._tab=t.dataset.t; navigate(); });
+  const body = wrap.querySelector('#areaBody');
+  if(tabState==='controle') renderControle(body);
+  else if(tabState==='historico') renderHistorico(body);
+  else renderRelatorios(body);
+}
+
+
+/* ===================== AGGREGATIONS ===================== */
+function registrosDoDia(dataISO){
+  return HISTORICO.filter(h=>h.data===dataISO);
+}
+function agregarDia(dataISO){
+  const regs = registrosDoDia(dataISO);
+  const agg = {total:regs.length, MELI:0, KN:0, TSI:0, T1:0, T2:0, T3:0};
+  regs.forEach(r=>{
+    if(agg[r.empresa]!==undefined) agg[r.empresa]+=1; else agg[r.empresa]=(agg[r.empresa]||0)+1;
+    if(agg[r.turno]!==undefined) agg[r.turno]+=1;
+  });
+  return agg;
+}
+function empresasUsadas(){
+  const s = new Set(['TSI','MELI','KN','HD']);
+  DIARISTAS.forEach(d=>d.empresa && s.add(d.empresa));
+  HISTORICO.forEach(h=>h.empresa && s.add(h.empresa));
+  return Array.from(s);
+}
+
+
+function buildFlowSvg(regs,agg){
+  const slots=['05:00','06:00','08:00','13:00','14:00','22:30','23:00'];
+  const planned=slots.map(h=>regs.filter(r=>String(r.horario_entrada||'').slice(0,5)===h).length);
+  const entered=slots.map(h=>regs.filter(r=>String(r.horario_entrada||'').slice(0,5)===h && r.qr_entrada_batida_em).length);
+  const max=Math.max(1,...planned,...entered), base=168, top=18, H=140, step=72, x0=43;
+  let grid=''; for(let i=0;i<5;i++){let y=top+i*H/4;let v=Math.round(max*(4-i)/4);grid+=`<line class="grid" x1="35" y1="${y}" x2="545" y2="${y}"/><text x="9" y="${y+4}">${v}</text>`}
+  let bars='', labels=''; slots.forEach((h,i)=>{let x=x0+i*step;let ph=planned[i]/max*H,eh=entered[i]/max*H;bars+=`<rect class="bar-blue" x="${x}" y="${base-ph}" width="19" height="${ph}" rx="4"/><rect class="bar-green" x="${x+22}" y="${base-eh}" width="19" height="${eh}" rx="4"/><text x="${x+20}" y="188" text-anchor="middle">${h}</text><text x="${x+9}" y="${Math.max(13,base-ph-5)}" text-anchor="middle">${planned[i]}</text><text x="${x+31}" y="${Math.max(13,base-eh-5)}" text-anchor="middle">${entered[i]}</text>`});
+  return `<svg class="chart-svg" viewBox="0 0 580 205" preserveAspectRatio="none"><defs><linearGradient id="barBlue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#12c8ff"/><stop offset="1" stop-color="#0877ff"/></linearGradient><linearGradient id="barGreen" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1cf0ba"/><stop offset="1" stop-color="#00a97d"/></linearGradient></defs>${grid}${bars}</svg>`;
+}
+function buildCompanyDonut(kn,meli,total){
+  const t=Math.max(1,kn+meli), kp=kn/t, mp=meli/t, C=2*Math.PI*52, ko=(C*kp).toFixed(2), mo=(C*mp).toFixed(2), off=(-C*kp).toFixed(2);
+  return `<div class="company-layout"><svg class="donut-svg" viewBox="0 0 140 140"><circle cx="70" cy="70" r="52" fill="none" stroke="#15354b" stroke-width="20"/><circle cx="70" cy="70" r="52" fill="none" stroke="#078dff" stroke-width="20" stroke-linecap="butt" stroke-dasharray="${ko} ${C}" transform="rotate(-90 70 70)"/><circle cx="70" cy="70" r="52" fill="none" stroke="#ffd229" stroke-width="20" stroke-dasharray="${mo} ${C}" stroke-dashoffset="${off}" transform="rotate(-90 70 70)"/><text x="70" y="67" text-anchor="middle" fill="#fff" font-size="24" font-weight="800">${total}</text><text x="70" y="84" text-anchor="middle" fill="#9bb5c8" font-size="9">Diaristas</text></svg><div class="company-legend"><div class="row"><i style="background:#078dff;color:#078dff"></i><span>KN</span><b>${kn}</b></div><small>${Math.round(kp*100)}%</small><div class="row"><i style="background:#ffd229;color:#ffd229"></i><span>MELI</span><b>${meli}</b></div><small>${Math.round(mp*100)}%</small></div></div>`;
+}
+
+/* ===================== DASHBOARD ===================== */
+function renderDashboard(c){
+  setTitle('Dashboard', DIARISTAS.length+' diaristas cadastrados · '+HISTORICO.length+' lançamentos no histórico');
+  const dataAtual = renderDashboard._data || todayISO();
+  const agg = agregarDia(dataAtual);
+  const dd = distDia(dataAtual);
+  const meli = dd?dd.meli:0, kn = dd?dd.kn:0;
+  const regs = registrosDoDia(dataAtual);
+  const entradas = regs.filter(r=>r.qr_entrada_batida_em).length;
+  const saidas = regs.filter(r=>r.qr_saida_batida_em).length;
+  const pendentes = Math.max(0, regs.length-entradas);
+  // Atraso é classificação manual/operacional; não inferir automaticamente pelo horário da batida.
+  const atrasos = regs.filter(r=>String(r.status||r.situacao||'').toLowerCase().includes('atras')).length;
+  const presentes = entradas;
+  c.innerHTML = `<div class="dash-hero"><div class="panel"><h2>Bem-vinda! · controle completo da operação</h2><div class="hero-main"><div><div class="kn-clock" id="knClock"></div><div class="kn-day" style="margin-top:10px"><b id="knWeekday"></b> · <span id="knLiveDate"></span><span id="knLiveTime" hidden></span></div></div><div class="kn-quote">“Disciplina hoje,<br>resultado sempre.”<small>KUEHNE+NAGEL</small></div></div></div><div class="panel hero-side"><div class="field mb0"><label>Data selecionada</label><input type="date" id="dashDate" class="w100" value="${dataAtual}"></div><div class="hero-stats"><span class="pill ativo">● ${entradas} presente${entradas===1?'':'s'}</span><span class="pill novo">● ${pendentes} pendente${pendentes===1?'':'s'}</span><span class="pill empresa">${saidas} saída${saidas===1?'':'s'}</span></div></div></div><div class="kn-filterbar"><div class="panel"><div class="field"><label>Busca rápida — CPF ou nome completo</label><input class="searchbox" id="quickSearch" placeholder="Buscar por nome ou GROOT…"></div></div></div><div id="quickResult"></div>`;
+  const knUpdateHeader=()=>{const now=new Date(); const wd=now.toLocaleDateString('pt-BR',{weekday:'long'}); const elw=document.getElementById('knWeekday'); if(elw) elw.textContent=wd.charAt(0).toUpperCase()+wd.slice(1); const eld=document.getElementById('knLiveDate'); if(eld) eld.textContent=now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}); const elt=document.getElementById('knLiveTime'); if(elt) elt.textContent=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}; knUpdateHeader(); if(window.__knHeadTimer) clearInterval(window.__knHeadTimer); window.__knHeadTimer=setInterval(knUpdateHeader,1000);
+  const ka=document.getElementById('knSecretAnchor'); if(ka){let ac=0,at=null;ka.onclick=()=>{ac++;clearTimeout(at);if(ac>=2){ac=0;window.parent.postMessage({type:'kn-toggle-private'},'*');}else{at=setTimeout(()=>{ac=0;},420);}};}
+  const kt=document.getElementById('knThemeBtn'); if(kt) kt.onclick=()=>{document.body.classList.toggle('kn-bright'); kt.textContent=document.body.classList.contains('kn-bright')?'☾':'☀';};
+  const cards=document.createElement('div'); cards.className='cards-row kn-kpis'; const KC=['var(--accent)','var(--amber)','var(--green)','var(--violet)','var(--pink)','var(--red)'];
+  const kd=[['👥','Diaristas hoje',agg.total,'#4cc3ff'],['🚚','MELI',meli,'#ffb547'],['◇','KN',kn,'#3ddc97'],['◉','T1',agg.T1,'#8f9bff'],['◉','T2',agg.T2,'#c58bff'],['◉','T3',agg.T3,'#ff6b6e']];
+  cards.innerHTML=kd.map((x,i)=>`<div class="card" style="--kc:${KC[i]}"><div class="khead"><div class="kicon">${x[0]}</div><span style="color:#5de5ff">•••</span></div><div class="label">${x[1]}</div><div class="value">${x[2]}</div><svg class="mini-line" viewBox="0 0 160 36" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${x[3]}" stop-opacity=".34"/><stop offset="1" stop-color="${x[3]}" stop-opacity="0"/></linearGradient></defs><path class="area" d="M0 31 L18 26 L34 28 L52 19 L69 22 L88 13 L105 16 L124 8 L142 11 L160 3 L160 36 L0 36Z"/><path class="line" d="M0 31 L18 26 L34 28 L52 19 L69 22 L88 13 L105 16 L124 8 L142 11 L160 3"/></svg></div>`).join(''); c.appendChild(cards);
+  const colunas=[{key:'nome',label:'Nome',get:r=>r.nome},{key:'cpf',label:'CPF',get:r=>formatCPF(r.cpf)},{key:'groot',label:'GROOT ID',get:r=>r.groot_id||'-'},{key:'empresa',label:'Empresa',get:r=>r.empresa},{key:'cargo',label:'Cargo',get:r=>r.cargo},{key:'turno',label:'Turno',get:r=>r.turno},{key:'horario_previsto',label:'Horário previsto',get:r=>r.horario_entrada},{key:'entrada_ponto',label:'Entrada (ponto)',get:r=>fmtBatida(r.qr_entrada_batida_em,r.data)},{key:'saida_ponto',label:'Saída (ponto)',get:r=>fmtBatida(r.qr_saida_batida_em,r.data)}];
+  const list=document.createElement('div'); list.className='panel kn-table-panel'; list.innerHTML=`<div class="kn-table-head"><h2>Diaristas do dia — ${fmtDateBR(dataAtual)} (${diaSemana(dataAtual)})</h2><span class="small muted">${regs.length} registros</span></div><div class="table-wrap"><table class="table-compact"><thead><tr>${colunas.map(x=>`<th>${x.label}<span class="colcopy" data-col="${x.key}" title="Copiar coluna"> ▣</span></th>`).join('')}<th>Status</th></tr></thead><tbody>${regs.length?regs.map(r=>{let st=r.qr_entrada_batida_em?'<span class="status-present">● Presente</span>':'<span class="status-pending">● Pendente</span>';return `<tr>${colunas.map(x=>x.key==='empresa'?`<td><span class="pill empresa ${String(x.get(r)||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'')}">${esc(x.get(r))}</span></td>`:`<td>${esc(x.get(r))}</td>`).join('')}<td>${st}</td></tr>`}).join(''):`<tr><td colspan="10" class="muted">Nenhum registro para esta data.</td></tr>`}</tbody></table></div>`; c.appendChild(list);
+  /* A busca fica junto ao cabeçalho da lista, como na referência solicitada. */
+  const qs=document.getElementById('quickSearch');
+  const qPanel=qs&&qs.closest('.panel');
+  const tableHead=list.querySelector('.kn-table-head');
+  if(qs&&qPanel&&tableHead){
+    const searchWrap=document.createElement('div');
+    searchWrap.className='kn-table-search';
+    searchWrap.appendChild(qs);
+    const resetBtn=document.createElement('button');
+    resetBtn.className='btn danger sm';
+    resetBtn.id='dashZerarBatidas';
+    resetBtn.type='button';
+    resetBtn.textContent='Zerar batidas';
+    resetBtn.title='Zerar as batidas de entrada e saída desta data';
+    searchWrap.appendChild(resetBtn);
+    tableHead.appendChild(searchWrap);
+    qPanel.remove();
+  }
+  const dashResetBtn=document.getElementById('dashZerarBatidas');
+  if(dashResetBtn) dashResetBtn.onclick=async()=>{
+    const regsComBatida=registrosDoDia(dataAtual).filter(r=>r.qr_entrada_batida_em || r.qr_saida_batida_em);
+    if(!regsComBatida.length){ toast('Não há batidas para zerar em '+fmtDateBR(dataAtual)+'.','warn'); return; }
+    if(!confirm(`Zerar as batidas de entrada/saída de ${regsComBatida.length} lançamento(s) em ${fmtDateBR(dataAtual)}? Essa ação não pode ser desfeita.`)) return;
+    dashResetBtn.disabled=true; const txt=dashResetBtn.textContent; dashResetBtn.textContent='Zerando...';
+    let ok=0, falhou=0;
+    for(const r of regsComBatida){
+      const upd=await sbUpdate('historico_diarias',r.id,{qr_entrada_batida_em:null,qr_saida_batida_em:null});
+      if(upd){r.qr_entrada_batida_em=null;r.qr_saida_batida_em=null;ok++;}else falhou++;
+    }
+    dashResetBtn.disabled=false; dashResetBtn.textContent=txt;
+    toast(falhou?`${ok} zerada(s), ${falhou} falharam.`:`${ok} batida(s) zerada(s) com sucesso.`,falhou?'warn':'ok');
+    navigate();
+  };
+  const tick=()=>{const e=document.getElementById('knClock');if(e)e.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});};tick(); clearInterval(window._knClockTimer);window._knClockTimer=setInterval(tick,1000);
+
+  document.getElementById('dashDate').addEventListener('change',e=>{renderDashboard._data=e.target.value;navigate();});
+  document.getElementById('quickSearch').addEventListener('input',e=>{const q=e.target.value.trim(),res=document.getElementById('quickResult');if(!q){res.innerHTML='';return;}let match=onlyDigits(q).length>=6?findDiaristaByCPF(q):null;if(!match)match=DIARISTAS.find(d=>normalizeName(d.nome).includes(normalizeName(q)));res.innerHTML=match?`<div class="alert ok mt16"><b>${esc(match.nome)}</b> · ${formatCPF(match.cpf)} · ${esc(match.empresa||'-')} · ${esc(match.cargo||'-')}</div>`:`<div class="alert warn mt16">Nenhum diarista encontrado para "${esc(q)}".</div>`;});
+  list.querySelectorAll('.colcopy').forEach(el=>el.addEventListener('click',async()=>{const col=colunas.find(cc=>cc.key===el.dataset.col);if(!regs.length)return toast('Não há dados para copiar nesta data.','warn');try{await navigator.clipboard.writeText(regs.map(r=>col.get(r)||'').join('\n'));toast('Coluna copiada.','ok')}catch(e){toast('Não foi possível copiar automaticamente.','err')}}));
+}
+
+function renderBanco(c){
+  if(fichaDiaristaId){ renderFicha(c, fichaDiaristaId); return; }
+  setTitle('Banco de Diaristas', DIARISTAS.length+' diaristas cadastrados');
+  const state = renderBanco._state || {q:'', empresa:'', status:'', page:1};
+  renderBanco._state = state;
+  const pageSize = 12;
+
+  const panel = document.createElement('div');
+  panel.className='panel';
+  panel.innerHTML = `
+    <div class="flex between mt8" style="flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div class="flex gap8" style="flex-wrap:wrap;">
+        <input id="bQ" placeholder="Buscar por nome, CPF ou GROOT ID" value="${esc(state.q)}" style="width:260px;">
+        <select id="bEmpresa"><option value="">Empresa (todas)</option>${empresasUsadas().map(e=>`<option ${state.empresa===e?'selected':''}>${e}</option>`).join('')}</select>
+        <select id="bStatus"><option value="">Status (todos)</option><option ${state.status==='Ativo'?'selected':''}>Ativo</option><option ${state.status==='Inativo'?'selected':''}>Inativo</option></select>
+      </div>
+      <div class="flex gap8" style="flex-wrap:wrap;">
+        <button class="btn secondary" id="btnImportarBanco">&#8593; Importar Listagem</button>
+        <button class="btn yellow" id="btnNovo">+ Novo Diarista</button>
+      </div>
+    </div>
+    <div class="table-wrap" id="banco-table"></div>
+    <div class="flex between mt16" id="banco-pager"></div>
+  `;
+  c.appendChild(panel);
+
+  // Pesquisa/exportação por período movida da aba Relatórios para baixo do Banco de Diaristas.
+  const bancoPeriodo = document.createElement('div');
+  bancoPeriodo.id = 'banco-periodo-exportacao';
+  bancoPeriodo.style.marginTop = '18px';
+  c.appendChild(bancoPeriodo);
+  renderExportModelo(bancoPeriodo);
+
+  function filtered(){
+    return DIARISTAS.filter(d=>{
+      if(state.empresa && d.empresa!==state.empresa) return false;
+      if(state.status && d.status!==state.status) return false;
+      if(state.q){
+        const q = normalizeName(state.q);
+        const qd = onlyDigits(state.q);
+        const hit = normalizeName(d.nome).includes(q) || (qd && onlyDigits(d.cpf).includes(qd)) || (d.groot_id||'').includes(state.q);
+        if(!hit) return false;
+      }
+      return true;
+    });
+  }
+  function draw(){
+    const list = filtered();
+    const totalPages = Math.max(1, Math.ceil(list.length/pageSize));
+    state.page = Math.min(state.page, totalPages);
+    const pageItems = list.slice((state.page-1)*pageSize, state.page*pageSize);
+    document.getElementById('banco-table').innerHTML = `
+      <table><thead><tr><th>GROOT ID</th><th>Nome</th><th>CPF</th><th>Empresa</th><th>Cargo</th><th>Status</th><th>Ext</th><th></th></tr></thead>
+      <tbody>${pageItems.length? pageItems.map(d=>{
+        return `<tr>
+          <td>${esc(d.groot_id||'-')}</td>
+          <td><span class="link" data-open="${d.id}">${esc(d.nome)}</span></td>
+          <td>${formatCPF(d.cpf)}</td>
+          <td><span class="pill empresa">${esc(d.empresa)}</span></td>
+          <td>${esc(d.cargo)}</td>
+          <td><span class="pill ${d.status==='Ativo'?'ativo':'inativo'}">${d.status}</span></td>
+          <td>${esc(d.ext||'-')}</td>
+          <td><span class="link small" data-edit="${d.id}">editar</span></td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="8" class="muted">Nenhum diarista encontrado.</td></tr>`}</tbody></table>`;
+    document.getElementById('banco-pager').innerHTML = `
+      <div class="muted small">${list.length} resultado(s)</div>
+      <div class="flex gap8">
+        <button class="btn secondary sm" id="pPrev" ${state.page<=1?'disabled':''}>&laquo; Anterior</button>
+        <div class="small" style="align-self:center;">Página ${state.page} de ${totalPages}</div>
+        <button class="btn secondary sm" id="pNext" ${state.page>=totalPages?'disabled':''}>Próxima &raquo;</button>
+      </div>`;
+    document.getElementById('banco-table').querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>{fichaDiaristaId=el.dataset.open; navigate();}));
+    document.getElementById('banco-table').querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>openDiaristaModal(DIARISTAS.find(d=>d.id===el.dataset.edit))));
+    document.getElementById('pPrev').addEventListener('click',()=>{state.page--;draw();});
+    document.getElementById('pNext').addEventListener('click',()=>{state.page++;draw();});
+  }
+  draw();
+  document.getElementById('bQ').addEventListener('input', e=>{state.q=e.target.value; state.page=1; draw();});
+  document.getElementById('bEmpresa').addEventListener('change', e=>{state.empresa=e.target.value; state.page=1; draw();});
+  document.getElementById('bStatus').addEventListener('change', e=>{state.status=e.target.value; state.page=1; draw();});
+  document.getElementById('btnImportarBanco').addEventListener('click', ()=>{ currentView='importar'; fichaDiaristaId=null; navigate(); });
+  document.getElementById('btnNovo').addEventListener('click', ()=>openDiaristaModal(null));
+}
+
+function openDiaristaModal(diarista){
+  if(!isAdmin()){ toast('Ação não disponível.','warn'); return; }
+  const isEdit = !!diarista;
+  const bg = document.createElement('div');
+  bg.className='modal-bg';
+  const cargoAtual = isEdit ? (diarista.cargo||'AUX') : 'AUX';
+  bg.innerHTML = `<div class="modal diarista-modal">
+    <div class="modal-head">
+      <div><div class="modal-title">${isEdit?'Editar Diarista':'Novo Diarista'}</div><div class="modal-subtitle">Preencha os dados do diarista</div></div>
+      <span class="modal-close" id="mClose">&times;</span>
+    </div>
+    <div class="modal-theme-row"><span class="modal-theme-label">Tema da janela:</span><button type="button" class="modal-theme-btn active" id="mThemeLight">☀ Claro</button><button type="button" class="modal-theme-btn" id="mThemeDark">☾ Escuro</button></div>
+    <div class="field"><label>Nome completo *</label><input id="mNome" class="w100" value="${isEdit?esc(diarista.nome):''}"></div>
+    <div class="grid2">
+      <div class="field"><label>CPF *</label><input id="mCpf" class="w100" value="${isEdit?formatCPF(diarista.cpf):''}" placeholder="000.000.000-00"></div>
+      <div class="field"><label>GROOT ID</label><input id="mGroot" class="w100" value="${isEdit?esc(diarista.groot_id||''):''}"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Empresa *</label><input id="mEmpresa" list="empresasList" class="w100" value="${isEdit?esc(diarista.empresa):''}" placeholder="TSI, MELI, KN..."></div>
+      <div class="field"><label>Ext (login)</label><input id="mExt" class="w100" value="${isEdit?esc(diarista.ext||''):''}" placeholder="Ext_nomedapessoa"></div>
+    </div>
+    <div class="field"><label>Cargo *</label><select id="mCargo" class="w100">
+      ${['AUX','CONFERENTE','LÍDER','COORDENADOR','OUTROS'].map(c=>`<option value="${c}" ${cargoAtual.toUpperCase()===c?'selected':''}>${c}</option>`).join('')}
+    </select></div>
+    <datalist id="empresasList">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist>
+    <div class="field"><label>Status</label><select id="mStatus" class="w100"><option ${(!isEdit||diarista.status==='Ativo')?'selected':''}>Ativo</option><option ${isEdit&&diarista.status==='Inativo'?'selected':''}>Inativo</option></select></div>
+    <div class="flex between mt16">
+      <div>${isEdit?'<button class="btn danger sm" id="mDelete">Excluir cadastro</button>':''}</div>
+      <div class="flex gap8"><button class="btn secondary" id="mCancel">Cancelar</button><button class="btn" id="mSave">Salvar</button></div>
+    </div>
+  </div>`;
+  document.body.appendChild(bg);
+  const modalEl = bg.querySelector('.diarista-modal');
+  const btnLight = bg.querySelector('#mThemeLight');
+  const btnDark = bg.querySelector('#mThemeDark');
+  const setModalTheme = (mode)=>{
+    const dark = mode === 'dark';
+    modalEl.classList.toggle('modal-dark', dark);
+    btnLight.classList.toggle('active', !dark);
+    btnDark.classList.toggle('active', dark);
+  };
+  btnLight.onclick = ()=>setModalTheme('light');
+  btnDark.onclick = ()=>setModalTheme('dark');
+  setModalTheme('light');
+  bg.querySelector('#mClose').onclick = ()=>bg.remove();
+  bg.querySelector('#mCancel').onclick = ()=>bg.remove();
+  if(isEdit) bg.querySelector('#mDelete').onclick = async ()=>{
+    if(confirm('Excluir este diarista? O histórico de lançamentos será mantido.')){
+      const ok = await sbDelete('diaristas', diarista.id);
+      if(!ok) return;
+      DIARISTAS = DIARISTAS.filter(d=>d.id!==diarista.id);
+      bg.remove(); toast('Diarista excluído.','ok'); navigate();
+    }
+  };
+  bg.querySelector('#mSave').onclick = async ()=>{
+    const nome = bg.querySelector('#mNome').value.trim();
+    const cpf = normalizeCPF(bg.querySelector('#mCpf').value);
+    const empresa = bg.querySelector('#mEmpresa').value.trim().toUpperCase();
+    if(!nome || !cpf || !empresa){ toast('Preencha os campos obrigatórios: Nome, CPF e Empresa.','err'); return; }
+    if(cpf.length!==11){ toast('CPF inválido — deve conter 11 dígitos.','err'); return; }
+    const dupCpf = DIARISTAS.find(d=>normalizeCPF(d.cpf)===cpf && (!isEdit || d.id!==diarista.id));
+    if(dupCpf){ toast('Já existe um diarista cadastrado com este CPF.','err'); return; }
+    const now = new Date().toISOString();
+    const groot_id = bg.querySelector('#mGroot').value.trim();
+    const ext = bg.querySelector('#mExt').value.trim();
+    const cargo = bg.querySelector('#mCargo').value.trim()||'AUX';
+    const status = bg.querySelector('#mStatus').value;
+    if(isEdit){
+      const patch = {nome, cpf, empresa, groot_id, ext, cargo, status, nome_normalizado:normalizeName(nome), updated_at:now};
+      const updated = await sbUpdate('diaristas', diarista.id, patch);
+      if(!updated) return;
+      Object.assign(diarista, patch);
+    } else {
+      const inserted = await sbInsert('diaristas', {nome, cpf, empresa, groot_id, ext, cargo, status, nome_normalizado:normalizeName(nome), created_at:now, updated_at:now});
+      if(!inserted) return;
+      DIARISTAS.push(inserted);
+    }
+    bg.remove(); toast('Diarista salvo com sucesso.','ok'); navigate();
+  };
+}
+
+function renderFicha(c, id){
+  const d = DIARISTAS.find(x=>x.id===id);
+  if(!d){ fichaDiaristaId=null; renderBanco(c); return; }
+  setTitle('Ficha do Diarista', d.nome);
+  const hist = HISTORICO.filter(h=>h.diarista_id===d.id).sort((a,b)=>b.data.localeCompare(a.data));
+  const mesAtual = todayISO().slice(0,7);
+  const diasMes = new Set(hist.filter(h=>h.data.startsWith(mesAtual)).map(h=>h.data)).size;
+  const turnoCount = {};
+  hist.forEach(h=>turnoCount[h.turno]=(turnoCount[h.turno]||0)+1);
+  const turnoFreq = Object.entries(turnoCount).sort((a,b)=>b[1]-a[1])[0];
+
+  const panel = document.createElement('div');
+  panel.innerHTML = `
+    <div class="flex between mt8" style="margin-bottom:14px;">
+      <span class="link" id="backBanco">&larr; Voltar ao Banco de Diaristas</span>
+      <button class="btn secondary sm" id="editFicha">Editar cadastro</button>
+    </div>
+    <div class="panel">
+      <h2 style="font-size:20px;">${esc(d.nome)}</h2>
+      <div class="grid4">
+        <div><label>GROOT ID</label><div>${esc(d.groot_id||'-')}</div></div>
+        <div><label>CPF</label><div>${formatCPF(d.cpf)}</div></div>
+        <div><label>Empresa</label><div><span class="pill empresa">${esc(d.empresa)}</span></div></div>
+        <div><label>Cargo</label><div>${esc(d.cargo)}</div></div>
+        <div><label>Ext</label><div>${esc(d.ext||'-')}</div></div>
+      </div>
+    </div>
+    <div class="cards-row">
+      <div class="card"><div class="label">Dias trabalhados no mês</div><div class="value">${diasMes}</div></div>
+      <div class="card"><div class="label">Último dia trabalhado</div><div class="value" style="font-size:18px;">${hist[0]?fmtDateBR(hist[0].data):'-'}</div></div>
+      <div class="card"><div class="label">Turno mais frequente</div><div class="value" style="font-size:18px;">${turnoFreq?turnoFreq[0]:'-'}</div></div>
+      <div class="card"><div class="label">Total de lançamentos</div><div class="value">${hist.length}</div></div>
+    </div>
+    <div class="panel">
+      <h2>Histórico de trabalho</h2>
+      <div class="table-wrap"><table><thead><tr><th>Data</th><th>Dia</th><th>Turno</th><th>Horário previsto</th><th>Entrada (ponto)</th><th>Saída (ponto)</th><th>Empresa</th></tr></thead>
+      <tbody>${hist.length?hist.map(h=>`<tr><td>${fmtDateBR(h.data)}</td><td>${diaSemana(h.data)}</td><td>${esc(h.turno)}</td><td>${esc(h.horario_entrada)}</td><td>${fmtBatida(h.qr_entrada_batida_em,h.data)}</td><td>${fmtBatida(h.qr_saida_batida_em,h.data)}</td><td>${esc(h.empresa)}</td></tr>`).join(''):'<tr><td colspan="7" class="muted">Sem histórico.</td></tr>'}</tbody></table></div>
+    </div>
+  `;
+  c.appendChild(panel);
+  panel.querySelector('#backBanco').onclick = ()=>{fichaDiaristaId=null; navigate();};
+  panel.querySelector('#editFicha').onclick = ()=>openDiaristaModal(d);
+}
+
+/* ===================== IMPORTAR LISTAGEM ===================== */
+const FIELD_ALIASES = {
+  nome: ['nome','nome completo','diarista','colaborador','funcionario','funcionário'],
+  cpf: ['cpf','cpf do diarista','documento','doc'],
+  turno: ['turno'],
+  horario_entrada: ['horario','horário','entrada','horario de entrada','horário de entrada','hora'],
+  empresa: ['empresa'],
+  groot_id: ['groot id','grootid','groot','id groot'],
+  cargo: ['cargo','função','funcao'],
+  data: ['data','dia'],
+};
+function guessField(header){
+  const h = normalizeName(header).toLowerCase();
+  for(const [field, aliases] of Object.entries(FIELD_ALIASES)){
+    if(aliases.some(a=>h===a || h.includes(a))) return field;
+  }
+  return '';
+}
+function parseCSVText(text){
+  const delim = text.includes('\t') ? '\t' : (text.split('\n')[0].split(';').length>1 ? ';' : ',');
+  const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
+  return lines.map(l=>l.split(delim).map(c=>c.trim().replace(/^"|"$/g,'')));
+}
+// Detecta se a primeira linha colada/importada parece ser um valor de dado (ex: um CPF)
+// em vez de um título de coluna — evita perder a primeira linha quando a lista não tem cabeçalho.
+function inferFieldFromValue(cell){
+  const c = String(cell||'').trim();
+  if(!c) return '';
+  const d = onlyDigits(c);
+  if(d.length===11) return 'cpf';
+  if(/^T[123]$/i.test(c)) return 'turno';
+  if(/^\d{1,2}:\d{2}$/.test(c)) return 'horario_entrada';
+  if(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(c) || /^\d{4}-\d{2}-\d{2}$/.test(c)) return 'data';
+  if(/^\d{4,8}$/.test(d)) return 'groot_id';
+  if(/[A-Za-zÀ-ÿ]/.test(c) && c.trim().includes(' ')) return 'nome';
+  return '';
+}
+function rowLooksLikeData(row){
+  return row.some(cell=>{
+    if(guessField(cell)) return false; // combina com um rótulo de coluna conhecido — não conta como "dado"
+    return inferFieldFromValue(cell)!=='';
+  });
+}
+function splitHeaderAndData(allRows, forceHeaderless){
+  if(!allRows || !allRows.length) return {headers:[], rawRows:[], headerless:false};
+  const first = allRows[0];
+  const temHeaderConhecido = first.some(cell=>guessField(cell)!=='');
+  const headerless = forceHeaderless===true || (!temHeaderConhecido && forceHeaderless!==false && rowLooksLikeData(first));
+  if(headerless){
+    const labels = {nome:'Nome (detectado)', cpf:'CPF (detectado)', turno:'Turno (detectado)', horario_entrada:'Horário (detectado)', data:'Data (detectado)', groot_id:'GROOT ID (detectado)'};
+    const headers = first.map((cell,i)=>{ const f=inferFieldFromValue(cell); return labels[f] || ('Coluna '+(i+1)); });
+    return {headers, rawRows:allRows.slice(0), headerless:true};
+  }
+  return {headers:first.map(h=>String(h)), rawRows:allRows.slice(1), headerless:false};
+}
+
+// Leitor inteligente do relatório "Planejamento de Escala" (reports_Escala-...).
+// O arquivo pode trazer título/metadados antes da tabela. Para o sistema, só importam
+// os campos necessários para reconhecer o diarista e registrar o lançamento.
+function parsePlanejamentoEscalaRows(rows){
+  if(!rows || !rows.length) return null;
+  let headerIdx = -1;
+  for(let i=0;i<Math.min(rows.length,20);i++){
+    const norm = (rows[i]||[]).map(x=>normalizeName(String(x||'')).toLowerCase());
+    const temNome = norm.some(x=>x==='nome');
+    const temCpf = norm.some(x=>x==='cpf');
+    const temData = norm.some(x=>x==='data');
+    if(temNome && temCpf && temData){ headerIdx=i; break; }
+  }
+  if(headerIdx<0) return null;
+  const originalHeaders=(rows[headerIdx]||[]).map(x=>String(x||'').trim());
+  const normHeaders=originalHeaders.map(x=>normalizeName(x).toLowerCase());
+  const idxNome=normHeaders.findIndex(x=>x==='nome');
+  const idxCpf=normHeaders.findIndex(x=>x==='cpf');
+  const idxEmail=normHeaders.findIndex(x=>x==='email' || x==='e-mail');
+  const idxCel=normHeaders.findIndex(x=>x==='celular' || x==='telefone');
+  const idxData=normHeaders.findIndex(x=>x==='data');
+  if(idxNome<0 || idxCpf<0) return null;
+
+  // Lê a empresa do cabeçalho/metadados do relatório, quando existir.
+  // Ex.: "Site: CORDOVIL - SVC - KN" => empresa KN.
+  let empresaMeta='';
+  let dataChave=''; let horaChave='';
+  for(let i=0;i<headerIdx;i++){
+    for(const cell of (rows[i]||[])){
+      const txt=String(cell||'').trim();
+      // A chave KN também contém a DATA/HORA REAL do trabalho.
+      // Ex.: CORDKN190920260500 => 19/09/2026 05:00.
+      const km=txt.match(/Chave:\s*[A-Z]*KN(\d{2})(\d{2})(\d{4})(\d{2})(\d{2})/i);
+      if(km){ dataChave=`${km[3]}-${km[2]}-${km[1]}`; horaChave=`${km[4]}:${km[5]}`; }
+      const sm=txt.match(/^Site:\s*(.+)$/i);
+      if(sm){
+        const partes=sm[1].split('-').map(x=>x.trim()).filter(Boolean);
+        empresaMeta=(partes[partes.length-1]||'').toUpperCase();
+      }
+      const em=txt.match(/^Empresa:\s*(.+)$/i);
+      if(em) empresaMeta=em[1].trim().toUpperCase();
+    }
+  }
+
+  const out=[];
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const r=rows[i]||[];
+    const nome=String(r[idxNome]||'').trim();
+    const cpf=String(r[idxCpf]||'').trim();
+    if(!nome && !cpf) continue;
+    // Ignora rodapé/metadados e qualquer linha que não seja pessoa.
+    if(/^gerado em/i.test(nome) || /^chave:/i.test(nome) || /^site:/i.test(nome)) continue;
+    const dataOriginal = idxData>=0 ? String(r[idxData]||'').trim() : '';
+    // NORMALIZA AQUI, diretamente da célula Data da MESMA LINHA DO DIARISTA.
+    // Ex.: 19/09/2026 05:00 -> Data 2026-09-19 e Horário 05:00.
+    // Nunca usa a linha "Gerado em" como data de trabalho.
+    const dm = dataOriginal.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/);
+    let dataTrabalho = ''; let horaTrabalho = '';
+    if(dm){
+      let yy=dm[3]; if(yy.length===2) yy='20'+yy;
+      dataTrabalho = `${yy}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`;
+      if(dm[4]!=null) horaTrabalho = `${dm[4].padStart(2,'0')}:${dm[5]}`;
+    }
+    out.push([
+      nome,
+      cpf,
+      idxEmail>=0?String(r[idxEmail]||'').trim():'',
+      idxCel>=0?String(r[idxCel]||'').trim():'',
+      // Prioridade: data/hora da chave do planejamento. Ela representa o dia da escala.
+      // Se não houver chave, usa a Data da própria linha do diarista.
+      dataChave || dataTrabalho || dataOriginal,
+      horaChave || horaTrabalho
+    ]);
+  }
+  if(!out.length) return null;
+  return {headers:['Nome','CPF','Email','Celular','Data','Horário de entrada'], rawRows:out, smart:true, empresaMeta};
+}
+function splitDataHoraEscala(v){
+  const s=String(v||'').trim();
+  let data='', hora='';
+  let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if(m){
+    let y=m[3]; if(y.length===2)y='20'+y;
+    data=`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    if(m[4]!=null) hora=`${m[4].padStart(2,'0')}:${m[5]}`;
+  } else if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+    data=s.slice(0,10); const hm=s.match(/(?:T|\s)(\d{1,2}):(\d{2})/); if(hm) hora=`${hm[1].padStart(2,'0')}:${hm[2]}`;
+  }
+  return {data,hora};
+}
+function turnoPorHorario(h){
+  const hh=parseInt(String(h||'').split(':')[0],10);
+  if(Number.isNaN(hh)) return '';
+  if(hh>=4 && hh<12) return 'T1';
+  if(hh>=12 && hh<21) return 'T2';
+  return 'T3';
+}
+function renderImportar(c){
+  setTitle('Importar Listagem', 'Importe diaristas via Excel, CSV ou colando os dados');
+  const wiz = renderImportar._wiz || {step:1, rawRows:null, headers:[], mapping:{}, dataGeral:'', turnoGeral:'', empresaGeral:'', processed:null};
+  renderImportar._wiz = wiz;
+
+  const panel = document.createElement('div');
+  panel.className='panel';
+  panel.innerHTML = `
+    <div class="stepper">
+      <div class="step ${wiz.step===1?'active':wiz.step>1?'done':''}">1. Selecionar dados</div>
+      <div class="step ${wiz.step===2?'active':wiz.step>2?'done':''}">2. Confirmar colunas</div>
+      <div class="step ${wiz.step===3?'active':wiz.step>3?'done':''}">3. Conferência</div>
+      <div class="step ${wiz.step===4?'active':''}">4. Concluído</div>
+    </div>
+    <div id="wizBody"></div>
+  `;
+  c.appendChild(panel);
+  const body = panel.querySelector('#wizBody');
+
+  if(wiz.step===1) step1();
+  else if(wiz.step===2) step2();
+  else if(wiz.step===3) step3();
+  else if(wiz.step===4) step4();
+
+  function step1(){
+    body.innerHTML = `
+      <div class="grid3">
+        <div class="field"><label>Data de trabalho (use somente se a planilha não trouxer a data ao lado do nome)</label><input type="date" id="wDataGeral" value="${wiz.dataGeral}"></div>
+        <div class="field"><label>Turno padrão (opcional, se não houver coluna Turno)</label><select id="wTurnoGeral"><option value="">—</option><option>T1</option><option>T2</option><option>T3</option></select></div>
+        <div class="field"><label>Empresa padrão (opcional, se não houver coluna Empresa)</label><input id="wEmpresaGeral" list="empresasList2" value="${esc(wiz.empresaGeral)}" placeholder="TSI, MELI, KN..."><datalist id="empresasList2">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist></div>
+      </div>
+      <div class="dropzone" id="dz">
+        <div style="font-size:26px;">&#8593;</div>
+        <div><strong>Arraste um arquivo Excel/CSV</strong> ou clique para selecionar</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+      </div>
+      <h3>Ou cole os dados diretamente</h3>
+      <textarea id="pasteArea" class="w100" rows="6" placeholder="Cole aqui os dados, separados por TAB ou vírgula. Pode ser só uma lista de CPFs, um por linha, sem cabeçalho."></textarea>
+      <div class="field mt8" style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="pasteHasHeader" style="width:auto;">
+        <label class="mb0" for="pasteHasHeader" style="margin:0;">A lista colada tem uma linha de cabeçalho (ex: "Nome", "CPF"...) — desmarque se colou só os valores</label>
+      </div>
+      <div class="flex mt16" style="justify-content:flex-end;">
+        <button class="btn" id="toStep2">Continuar &rarr;</button>
+      </div>
+    `;
+    const dz = body.querySelector('#dz'), fileInput = body.querySelector('#fileInput');
+    dz.onclick = ()=>fileInput.click();
+    dz.ondragover = e=>{e.preventDefault(); dz.style.borderColor='var(--blue-light)';};
+    dz.ondrop = e=>{e.preventDefault(); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);};
+    fileInput.onchange = e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); };
+    function handleFile(file){
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        try{
+          const wb = XLSX.read(ev.target.result, {type:'binary'});
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
+          const cleaned = rows.filter(r=>r.some(cell=>String(cell).trim()!==''));
+          const smart = parsePlanejamentoEscalaRows(cleaned);
+          const split = smart || splitHeaderAndData(cleaned);
+          wiz.headers = split.headers; wiz.rawRows = split.rawRows;
+          wiz.smartPlanejamento = !!split.smart;
+          if(split.smart && split.empresaMeta) wiz.empresaGeral = split.empresaMeta;
+          if(split.headerless) toast('A primeira linha do arquivo parece ser um dado (ex: CPF), não um título — foi incluída como registro.','info');
+          if(split.smart) toast('Relatório reconhecido: a DATA AO LADO DO NOME será usada como data de trabalho, junto com o horário. A convocação ser feita no dia anterior não muda essa data. Empresa/data/horário ausentes ficam para preenchimento manual.','ok');
+          else toast('Arquivo carregado: '+file.name,'ok');
+          finishStep1();
+        }catch(err){ toast('Erro ao ler o arquivo: '+err.message,'err'); }
+      };
+      reader.readAsBinaryString(file);
+    }
+    body.querySelector('#toStep2').onclick = ()=>{
+      const pasted = body.querySelector('#pasteArea').value.trim();
+      const hasHeaderChecked = body.querySelector('#pasteHasHeader').checked;
+      if(!wiz.rawRows && pasted){
+        const allRows = parseCSVText(pasted);
+        const split = splitHeaderAndData(allRows, hasHeaderChecked? undefined : true);
+        wiz.headers = split.headers; wiz.rawRows = split.rawRows;
+        if(hasHeaderChecked && split.headerless) toast('Detectamos que a lista colada não tem cabeçalho — a primeira linha foi tratada como um registro, não como título.','info');
+      }
+      if(!wiz.rawRows || !wiz.rawRows.length){ toast('Selecione um arquivo ou cole os dados antes de continuar.','err'); return; }
+      finishStep1();
+    };
+    function finishStep1(){
+      wiz.dataGeral = body.querySelector('#wDataGeral').value || '';
+      wiz.turnoGeral = body.querySelector('#wTurnoGeral').value;
+      wiz.empresaGeral = (body.querySelector('#wEmpresaGeral').value.trim() || wiz.empresaGeral || '').toUpperCase();
+      wiz.mapping = {};
+      wiz.headers.forEach((h,i)=>{ const f = guessField(h); if(f) wiz.mapping[i]=f; });
+      if(wiz.smartPlanejamento){ const hi=wiz.headers.findIndex(h=>normalizeName(h).toLowerCase()==='horario de entrada'); if(hi>=0) wiz.mapping[hi]='horario_entrada'; const di=wiz.headers.findIndex(h=>normalizeName(h).toLowerCase()==='data'); if(di>=0) wiz.mapping[di]='data'; }
+      wiz.step = 2; navigate();
+    }
+  }
+
+  function step2(){
+    const fieldOptions = ['','nome','cpf','turno','horario_entrada','empresa','groot_id','cargo','data'];
+    const fieldLabels = {'':'(ignorar coluna)',nome:'Nome',cpf:'CPF',turno:'Turno',horario_entrada:'Horário de entrada',empresa:'Empresa',groot_id:'GROOT ID',cargo:'Cargo',data:'Data'};
+    body.innerHTML = `
+      <div class="alert info">${wiz.smartPlanejamento?'Relatório KN reconhecido automaticamente. O sistema separou apenas os dados necessários para identificar os diaristas.':'Confirme como cada coluna do arquivo corresponde aos campos do sistema.'} ${wiz.rawRows.length} linha(s) detectada(s).</div>
+      <div class="table-wrap"><table><thead><tr><th>Coluna do arquivo</th><th>Exemplo</th><th>Campo do sistema</th></tr></thead>
+      <tbody>${wiz.headers.map((h,i)=>`<tr>
+        <td><strong>${esc(h)}</strong></td>
+        <td class="muted">${esc(wiz.rawRows[0]?wiz.rawRows[0][i]:'')}</td>
+        <td><select data-col="${i}">${fieldOptions.map(f=>`<option value="${f}" ${wiz.mapping[i]===f?'selected':''}>${fieldLabels[f]}</option>`).join('')}</select></td>
+      </tr>`).join('')}</tbody></table></div>
+      <div class="flex between mt16">
+        <button class="btn secondary" id="back1">&larr; Voltar</button>
+        <button class="btn" id="toStep3">Processar dados &rarr;</button>
+      </div>
+    `;
+    body.querySelectorAll('select[data-col]').forEach(sel=>{
+      sel.onchange = ()=>{ wiz.mapping[sel.dataset.col] = sel.value; };
+    });
+    body.querySelector('#back1').onclick = ()=>{ wiz.step=1; navigate(); };
+    body.querySelector('#toStep3').onclick = ()=>{
+      if(!Object.values(wiz.mapping).includes('nome') && !Object.values(wiz.mapping).includes('cpf')){
+        toast('Mapeie ao menos a coluna de Nome ou CPF.','err'); return;
+      }
+      processarLinhas();
+      wiz.step=3; navigate();
+    };
+  }
+
+  function processarLinhas(){
+    const colByField = {};
+    Object.entries(wiz.mapping).forEach(([col,field])=>{ if(field) colByField[field]=Number(col); });
+    const seenInBatch = new Set(); // cpf+data+turno
+    const rows = wiz.rawRows.map((r)=>{
+      const get = f => colByField[f]!==undefined ? String(r[colByField[f]]||'').trim() : '';
+      const nome = get('nome');
+      const cpfRaw = get('cpf');
+      const cpf = normalizeCPF(cpfRaw);
+      const dataRaw = get('data');
+      const dh = splitDataHoraEscala(dataRaw);
+      let horario = get('horario_entrada') || dh.hora;
+      let turno = (get('turno')||wiz.turnoGeral||'').toUpperCase().trim();
+      if(!turno && horario) turno = turnoPorHorario(horario);
+      const empresaArquivo = (get('empresa')||wiz.empresaGeral||'').toUpperCase().trim();
+      const groot = get('groot_id');
+      const cargoArquivo = get('cargo');
+      // A data ao lado do nome é a data REAL em que o diarista vai trabalhar.
+      // O fato de a convocação/lista ser feita no dia anterior não altera essa data.
+      const data = dh.data || (dataRaw ? normalizeDateInput(dataRaw) : wiz.dataGeral);
+
+      if(!nome && !cpf){
+        return {status:'erro', motivo:'Sem nome e sem CPF', nome, cpf, turno, horario, empresa:empresaArquivo, groot, cargo:cargoArquivo||'Diarista', data};
+      }
+      if(cpfRaw && cpf.length!==11){
+        return {status:'erro', motivo:`CPF com ${cpf.length} dígito(s) — deveria ter 11. Confira se o Excel não removeu zeros à esquerda (formate a coluna como Texto).`, nome, cpf, turno, horario, empresa:empresaArquivo, groot, cargo:cargoArquivo||'Diarista', data};
+      }
+      let match = cpf ? findDiaristaByCPF(cpf) : null;
+      if(!match && nome) match = findDiaristaByName(nome);
+
+      const key = (cpf||normalizeName(nome))+'|'+data+'|'+turno;
+      let status = match ? 'encontrado' : 'novo';
+      let dupInfo = '';
+      if(seenInBatch.has(key)){ status='duplicidade'; dupInfo='Já presente nesta listagem (mesmo CPF/nome, data e turno).'; }
+      else {
+        const existsHist = HISTORICO.find(h=> (cpf? normalizeCPF(h.cpf)===cpf : normalizeName(h.nome)===normalizeName(nome)) && h.data===data && h.turno===turno);
+        if(existsHist){ status='duplicidade'; dupInfo='Já existe um lançamento igual no histórico (CPF/nome + data + turno).'; }
+      }
+      seenInBatch.add(key);
+
+      return {
+        status, dupInfo, include: status!=='erro',
+        // Se já existe no Banco, os dados cadastrais do Banco prevalecem. O arquivo serve para reconhecer a pessoa e o dia/horário.
+        nome: match?match.nome:nome,
+        cpf: match?match.cpf:cpf,
+        turno, horario,
+        empresa: 'TSI',
+        groot: match?(match.groot_id||''):groot,
+        cargo: match?(match.cargo||'Diarista'):(cargoArquivo||'Diarista'),
+        data,
+        diarista_id: match?match.id:null,
+      };
+    });
+    wiz.processed = rows;
+  }
+  function normalizeDateInput(v){
+    v = v.trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+    const m = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if(m){ let [_,d,mo,y]=m; if(y.length===2) y='20'+y; return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+    return wiz.dataGeral || '';
+  }
+
+  function step3(){
+    const rows = wiz.processed;
+    const counts = {encontrado:0,novo:0,duplicidade:0,erro:0};
+    rows.forEach(r=>counts[r.status]++);
+    const incluidas = rows.filter(r=>r.include && r.status!=='erro');
+    const porEmpresa = {};
+    incluidas.forEach(r=>{ const e = r.empresa || '(sem empresa)'; porEmpresa[e] = (porEmpresa[e]||0)+1; });
+    body.innerHTML = `
+      <div class="alert import-status-white">
+        🟢 ${rows.length} registro(s) processado(s) — 
+        <span class="pill encontrado">Encontrados: ${counts.encontrado}</span>
+        <span class="pill novo">Novos: ${counts.novo}</span>
+        <span class="pill duplicidade">Duplicidades: ${counts.duplicidade}</span>
+        ${counts.erro?`<span class="pill inativo">Erros: ${counts.erro}</span>`:''}
+      </div>
+      <div class="flex gap8 mt8" style="flex-wrap:wrap;">
+        ${Object.entries(porEmpresa).map(([e,n])=>`<span class="chip"><strong>${esc(e)}</strong>: ${n}</span>`).join('') || '<span class="muted small">Nenhuma linha com empresa definida ainda.</span>'}
+      </div>
+      <div class="panel mt8" style="box-shadow:none;border:1px solid var(--line);background:var(--wash);padding:12px 16px;margin-bottom:14px;">
+        <div class="flex gap8" style="flex-wrap:wrap;align-items:flex-end;">
+          <div class="field mb0"><label>Aplicar Turno a todas as linhas</label><select id="bulkTurno"><option value="">—</option><option>T1</option><option>T2</option><option>T3</option></select></div>
+          <div class="field mb0"><label>Aplicar Empresa a todas as linhas</label><input id="bulkEmpresa" list="empresasList3" value="TSI" placeholder="TSI"><datalist id="empresasList3">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist></div>
+          <div class="field mb0"><label>Aplicar Horário a todas as linhas</label><input id="bulkHorario" style="width:90px;" placeholder="08:00"></div>
+          <div class="field mb0"><label>Aplicar Data a todas as linhas</label><input type="date" id="bulkData" style="width:150px;"></div>
+          <button class="btn secondary sm" id="bulkApply">Aplicar a todas</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Incluir</th><th>Nome</th><th>CPF</th><th>Status</th><th>GROOT ID</th><th>Empresa *</th><th>Turno *</th><th>Entrada</th><th>Data</th></tr></thead>
+      <tbody>${rows.map((r,i)=>`<tr>
+        <td><input type="checkbox" data-inc="${i}" ${r.include?'checked':''} ${r.status==='erro'?'disabled':''}></td>
+        <td>${esc(r.nome)||'<span class="muted">—</span>'}</td>
+        <td>${r.cpf?formatCPF(r.cpf):'<span class="muted">—</span>'}</td>
+        <td><span class="pill ${r.status}">${r.status.toUpperCase()}</span>${r.dupInfo?`<div class="small muted">${esc(r.dupInfo)}</div>`:''}${r.status==='erro'?`<div class="small muted">${esc(r.motivo)}</div>`:''}</td>
+        <td>${esc(r.groot)||'-'}</td>
+        <td><input data-empresa="${i}" list="empresasList3" style="width:90px;" value="${esc(r.empresa)}" placeholder="definir"></td>
+        <td><select data-turno="${i}" style="width:70px;"><option value="">—</option>${['T1','T2','T3'].map(t=>`<option ${r.turno===t?'selected':''}>${t}</option>`).join('')}</select></td>
+        <td style="white-space:nowrap;">
+          <input data-horario="${i}" style="width:65px;" value="${esc(r.horario)}" placeholder="08:00">
+          <span class="link small" data-fromhere="${i}" title="Aplicar este horário desta linha para baixo" style="margin-left:4px;">&#8595;</span>
+        </td>
+        <td><input type="date" data-data="${i}" style="width:150px;" value="${esc(r.data)}"></td>
+      </tr>`).join('')}</tbody></table></div>
+      <div class="flex between mt16">
+        <button class="btn secondary" id="back2">&larr; Voltar</button>
+        <button class="btn" id="toStep4">Confirmar e salvar importação</button>
+      </div>
+    `;
+    body.querySelectorAll('[data-inc]').forEach(cb=>cb.onchange=()=>{ rows[Number(cb.dataset.inc)].include = cb.checked; step3(); });
+    body.querySelectorAll('[data-empresa]').forEach(inp=>inp.onchange=()=>{ rows[Number(inp.dataset.empresa)].empresa = inp.value.trim().toUpperCase(); step3(); });
+    body.querySelectorAll('[data-turno]').forEach(sel=>sel.onchange=()=>{ rows[Number(sel.dataset.turno)].turno = sel.value; step3(); });
+    body.querySelectorAll('[data-horario]').forEach(inp=>inp.onchange=()=>{ rows[Number(inp.dataset.horario)].horario = inp.value.trim(); });
+    body.querySelectorAll('[data-data]').forEach(inp=>inp.onchange=()=>{ rows[Number(inp.dataset.data)].data = inp.value; });
+    body.querySelectorAll('[data-fromhere]').forEach(el=>{
+      el.onclick = ()=>{
+        const i = Number(el.dataset.fromhere);
+        const inputAtual = body.querySelector(`[data-horario="${i}"]`);
+        const valor = (inputAtual ? inputAtual.value : rows[i].horario || '').trim();
+        if(!valor){ toast('Digite um horário nesta linha antes de aplicar para baixo.','warn'); return; }
+        for(let k=i; k<rows.length; k++){ rows[k].horario = valor; }
+        step3();
+      };
+    });
+    body.querySelector('#bulkApply').onclick = ()=>{
+      const t = body.querySelector('#bulkTurno').value;
+      const e = body.querySelector('#bulkEmpresa').value.trim().toUpperCase();
+      const h = body.querySelector('#bulkHorario').value.trim();
+      const d = body.querySelector('#bulkData').value;
+      rows.forEach(r=>{ if(t) r.turno=t; if(e) r.empresa=e; if(h) r.horario=h; if(d) r.data=d; });
+      step3();
+    };
+    body.querySelector('#back2').onclick = ()=>{ wiz.step=2; navigate(); };
+    body.querySelector('#toStep4').onclick = async (ev)=>{
+      const toSave = rows.filter(r=>r.include && r.status!=='erro');
+      const incompletas = toSave.filter(r=>!r.empresa || !r.turno || !r.data);
+      if(incompletas.length){ toast(incompletas.length+' linha(s) sem Empresa, Turno ou Data de trabalho — preencha antes de salvar.','err'); return; }
+      ev.target.disabled = true; ev.target.textContent = 'Salvando...';
+      let novos=0, salvos=0;
+      const falhas = [];
+      const novosNaSessao = {}; // chave cpf-ou-nome -> diarista_id recém-criado nesta importação
+      for(const r of toSave){
+        let diaristaId = r.diarista_id;
+        const chave = r.cpf || normalizeName(r.nome);
+        if(!diaristaId && novosNaSessao[chave]) diaristaId = novosNaSessao[chave];
+        if(!diaristaId){
+          const now = new Date().toISOString();
+          const inserted = await sbInsert('diaristas', {nome:r.nome, cpf:r.cpf, empresa:'TSI', groot_id:r.groot, cargo:r.cargo, status:'Ativo', nome_normalizado:normalizeName(r.nome), created_at:now, updated_at:now});
+          if(!inserted){
+            // pode já existir com esse CPF (conflito de unicidade) — tenta localizar antes de desistir da linha
+            let existente = findDiaristaByCPF(r.cpf);
+            if(!existente){
+              // cache local (DIARISTAS) pode estar desatualizada — confirma direto no banco antes de desistir
+              existente = await sbFindDiaristaByCPF(r.cpf);
+              if(existente) DIARISTAS.push(existente); // atualiza cache local pro resto desta importação
+            }
+            if(existente){ diaristaId = existente.id; }
+            else { falhas.push(`${r.nome||r.cpf} — CPF já cadastrado, mas não foi possível localizar o registro`); continue; }
+          } else {
+            DIARISTAS.push(inserted); diaristaId = inserted.id; novosNaSessao[chave] = diaristaId; novos++;
+          }
+        }
+        // Pega o Ext (LDAP) do cadastro nesse momento e grava junto do lançamento, pra ficar
+        // salvo permanentemente (não recalculado depois, caso o cadastro mude no futuro).
+        const diaristaCad = DIARISTAS.find(x=>x.id===diaristaId);
+        const ldap = (diaristaCad && diaristaCad.ext) || '';
+        const histRow = await sbInsert('historico_diarias', {diarista_id:diaristaId, data:r.data, dia_semana:diaSemana(r.data), turno:r.turno, horario_entrada:r.horario, cpf:r.cpf, nome:r.nome, groot_id:r.groot, empresa:'TSI', cargo:r.cargo, ldap, created_at:new Date().toISOString()});
+        if(!histRow){ falhas.push(`${r.nome||r.cpf} (${fmtDateBR(r.data)}, ${r.turno}) — falha ao gravar o lançamento`); continue; }
+        HISTORICO.push(histRow);
+        salvos++;
+      }
+      await sbInsert('importacoes', {nome_arquivo:'Importação manual', data_importacao:new Date().toISOString(), quantidade_registros:salvos, usuario:'operador', status:'concluída'});
+      const naoIncluidos = rows.length - toSave.length;
+      let msg = `${salvos} de ${rows.length} linha(s) da lista foram salvas no histórico, sendo ${novos} novo(s) diarista(s) cadastrado(s).`;
+      if(naoIncluidos>0) msg += ` ${naoIncluidos} linha(s) não foram incluídas por estarem como Duplicidade/Erro ou desmarcadas na conferência.`;
+      if(falhas.length) msg += ` ⚠️ ${falhas.length} linha(s) falharam ao gravar no banco: ${falhas.join('; ')}.`;
+      wiz.resultMsg = msg;
+      wiz.resultOk = falhas.length===0;
+      wiz.step=4; navigate();
+    };
+  }
+
+  function step4(){
+    body.innerHTML = `
+      <div class="alert ${wiz.resultOk===false?'warn':'ok'}">${wiz.resultOk===false?'🟡 Importação concluída com atenção:':'🟢 Importação concluída com sucesso!'}<br>${esc(wiz.resultMsg||'')}</div>
+      <button class="btn" id="novaImportacao">Nova importação</button>
+      <button class="btn secondary" id="verDash" style="margin-left:8px;">Ver Dashboard</button>
+    `;
+    body.querySelector('#novaImportacao').onclick = ()=>{ renderImportar._wiz=null; navigate(); };
+    body.querySelector('#verDash').onclick = ()=>{ renderImportar._wiz=null; currentView='dashboard'; navigate(); };
+  }
+}
+
+/* ===================== CONTROLE DIÁRIO ===================== */
+function renderControle(c){
+  const state = renderControle._state || {ini: todayISO().slice(0,8)+'01', fim: todayISO()};
+  renderControle._state = state;
+  const panel = document.createElement('div');
+  panel.className='panel';
+  panel.innerHTML = `
+    <div class="flex gap12" style="margin-bottom:14px;flex-wrap:wrap;">
+      <div class="field mb0"><label>De</label><input type="date" id="cIni" value="${state.ini}"></div>
+      <div class="field mb0"><label>Até</label><input type="date" id="cFim" value="${state.fim}"></div>
+      <button class="btn secondary sm" id="cExport" style="align-self:end;">Exportar CSV</button>
+    </div>
+    <div class="table-wrap" id="cTable"></div>
+  `;
+  c.appendChild(panel);
+  attachDistInputHandler(panel);
+
+  function draw(){
+    const datas = Array.from(new Set(HISTORICO.filter(h=>h.data>=state.ini && h.data<=state.fim).map(h=>h.data))).sort().reverse();
+    document.getElementById('cTable').innerHTML = `
+      <table><thead><tr><th>Data</th><th>Dia</th><th>Total</th><th>MELI</th><th>KN</th><th>T1</th><th>T2</th><th>T3</th></tr></thead>
+      <tbody>${datas.length?datas.map(d=>{
+        const agg = agregarDia(d);
+        const dd = distDia(d);
+        const meli = dd?dd.meli:0, kn = dd?dd.kn:0;
+        return `<tr><td>${fmtDateBR(d)}</td><td>${diaSemana(d)}</td><td><strong>${agg.total}</strong></td>
+          <td><input type="number" min="0" max="${agg.total}" class="dist-input" data-campo="meli" data-data="${d}" data-total="${agg.total}" value="${meli}" style="width:64px;"></td>
+          <td><input type="number" min="0" max="${agg.total}" class="dist-input" data-campo="kn" data-data="${d}" data-total="${agg.total}" value="${kn}" style="width:64px;"></td>
+          <td>${agg.T1||0}</td><td>${agg.T2||0}</td><td>${agg.T3||0}</td></tr>`;
+      }).join(''):'<tr><td colspan="8" class="muted">Nenhum dado no período selecionado.</td></tr>'}</tbody></table>`;
+  }
+  draw();
+  document.getElementById('cIni').onchange = e=>{state.ini=e.target.value; draw();};
+  document.getElementById('cFim').onchange = e=>{state.fim=e.target.value; draw();};
+  document.getElementById('cExport').onclick = ()=>{
+    const datas = Array.from(new Set(HISTORICO.filter(h=>h.data>=state.ini && h.data<=state.fim).map(h=>h.data))).sort();
+    const header = ['Data','Dia','Total','MELI','KN','T1','T2','T3'];
+    const rows = datas.map(d=>{ const agg = agregarDia(d); const dd = distDia(d); return [fmtDateBR(d), diaSemana(d), agg.total, dd?dd.meli:0, dd?dd.kn:0, agg.T1||0, agg.T2||0, agg.T3||0]; });
+    exportCSV('controle_diario.csv', header, rows);
+  };
+
+  renderAbsPanel(c);
+}
+
+// Área separada de Faltas/ABS: informação distinta da distribuição MELI/KN, com filtro de
+// período próprio (padrão: hoje). Lançamento rápido — só a quantidade total do dia, sem
+// cadastro por diarista.
+function renderAbsPanel(c){
+  const state = renderAbsPanel._state || {ini: todayISO(), fim: todayISO()};
+  renderAbsPanel._state = state;
+  const panel = document.createElement('div');
+  panel.className='panel';
+  panel.style.marginTop = '18px';
+  if(!document.getElementById('absTableStyle')){
+    const st=document.createElement('style'); st.id='absTableStyle';
+    st.textContent=``;void `.abs-table th,.abs-table td{font-size:12px!important;padding:6px 7px!important;line-height:1.2!important;white-space:nowrap}.abs-table .abs-date-start td{background:rgba(0,163,224,.14)!important;border-top:2px solid #00A3E0!important}.abs-table .abs-date-start td:first-child{box-shadow:inset 3px 0 0 #00A3E0}.abs-table .abs-input{font-size:12px!important;padding:4px 6px!important;height:28px!important}`;
+    document.head.appendChild(st);
+  }
+  panel.innerHTML = `
+    <h3 style="margin:0 0 12px;font-size:15px;color:var(--cyan,#00A3E0);">Relatório Fatura</h3>
+    <div class="flex gap12" style="margin-bottom:14px;flex-wrap:wrap;">
+      <div class="field mb0"><label>De</label><input type="date" id="aIni" value="${state.ini}"></div>
+      <div class="field mb0"><label>Até</label><input type="date" id="aFim" value="${state.fim}"></div>
+      <button class="btn secondary sm" id="aExportXlsx" style="align-self:end;">⬇ Exportar Excel (fatura)</button>
+    </div>
+    <div class="table-wrap" id="aTable"></div>
+  `;
+  c.appendChild(panel);
+  attachAbsInputHandler(panel);
+
+  function draw(){
+    const datas = Array.from(new Set(HISTORICO.filter(h=>h.data>=state.ini && h.data<=state.fim).map(h=>h.data))).sort().reverse();
+    document.getElementById('aTable').innerHTML = `
+      <table class="abs-table" style="font-size:12px;"><thead><tr><th>Groot ID</th><th>Nome</th><th>Empresa</th><th>Cargo</th><th>Escala</th><th>Data</th><th>Qtd. Diarista</th><th>ABS</th></tr></thead>
+      <tbody>${datas.length?datas.map(d=>{
+        const regs = registrosDoDia(d);
+        const totalDia = regs.length;
+        const dd = distDia(d);
+        const abs = dd?(dd.abs||0):0;
+        return regs.map((h,idx)=>{
+          const cad = (h.diarista_id && DIARISTAS.find(x=>x.id===h.diarista_id)) || findDiaristaByCPF(h.cpf) || {};
+          const groot = h.groot_id || cad.groot_id || '';
+          const nome = h.nome || cad.nome || '';
+          const empresa = h.empresa || cad.empresa || '';
+          const cargo = 'Diarista';
+          const escala = h.escala || cad.escala || h.turno || '';
+          return `<tr class="${idx===0?'abs-date-start':''}">
+            <td>${esc(groot)}</td><td><strong>${esc(nome)}</strong></td><td>${esc(empresa)}</td><td>${esc(cargo)}</td><td>${esc(escala)}</td>
+            <td>${fmtDateBR(d)}</td><td><strong>${totalDia}</strong></td>
+            <td>${idx===0?`<input type="number" min="0" class="abs-input" data-data="${d}" value="${abs}" style="width:64px;">`:`<span class="muted">${abs}</span>`}</td>
+          </tr>`;
+        }).join('');
+      }).join(''):'<tr><td colspan="8" class="muted">Nenhum dado no período selecionado.</td></tr>'}</tbody></table>`;
+  }
+  draw();
+  document.getElementById('aIni').onchange = e=>{state.ini=e.target.value; draw();};
+  document.getElementById('aFim').onchange = e=>{state.fim=e.target.value; draw();};
+  document.getElementById('aExportXlsx').onclick = ()=> exportControleExcel(state.ini, state.fim);
+}
+
+// Ao editar o campo ABS de um dia, salva na mesma tabela distribuicao_diaria (junto com
+// MELI/KN), sem mexer nos outros campos. Só soma o número digitado — sem precisar registrar
+// diarista por diarista.
+function attachAbsInputHandler(container){
+  container.addEventListener('change', async (e)=>{
+    const inp = e.target.closest('.abs-input');
+    if(!inp) return;
+    const dataISO = inp.dataset.data;
+    let val = parseInt(inp.value);
+    if(isNaN(val) || val<0) val = 0;
+    inp.value = val;
+    const existente = distDia(dataISO);
+    const patch = {abs: val, updated_at:new Date().toISOString()};
+    let ok;
+    if(existente){
+      const upd = await sbUpdate('distribuicao_diaria', existente.id, patch);
+      ok = !!upd;
+      if(ok) Object.assign(existente, patch);
+    } else {
+      const inserted = await sbInsert('distribuicao_diaria', {data:dataISO, meli:0, kn:0, ...patch});
+      ok = !!inserted;
+      if(ok) DIST_DIARIA.push(inserted);
+    }
+    if(ok) toast('ABS de '+fmtDateBR(dataISO)+' salva.','ok');
+  });
+}
+
+// Exportação profissional (Excel com formatação) do Controle Diário do período — usada pela
+// gerência para fechamento de fatura. Usa ExcelJS (carregado via CDN) para aplicar cores,
+// negrito e bordas, o que a biblioteca xlsx básica usada no resto do sistema não suporta.
+async function exportControleExcel(ini, fim){
+  const datas = Array.from(new Set(HISTORICO.filter(h=>h.data>=ini && h.data<=fim).map(h=>h.data))).sort();
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Faltas ABS');
+  ws.columns = [{width:18},{width:34},{width:22},{width:16},{width:22},{width:14},{width:16},{width:12}];
+  ws.mergeCells('A1:H1');
+  ws.getCell('A1').value = 'KUEHNE+NAGEL — Relatório Fatura';
+  ws.getCell('A1').font = {size:14,bold:true,color:{argb:'FFFFFFFF'}};
+  ws.getCell('A1').fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FF003B5C'}};
+  ws.getCell('A1').alignment = {vertical:'middle',horizontal:'left'};
+  ws.getRow(1).height=26;
+  ws.mergeCells('A2:H2');
+  ws.getCell('A2').value = `Período: ${fmtDateBR(ini)} a ${fmtDateBR(fim)} · Gerado em ${fmtDateBR(todayISO())}`;
+  ws.getCell('A2').font={size:10,italic:true,color:{argb:'FF44586A'}};
+  ws.getRow(3).height=6;
+  const header=ws.getRow(4);
+  header.values=['Groot ID','Nome','Empresa','Cargo','Escala','Data','Qtd. Diarista','Qtd. ABS'];
+  header.eachCell(cell=>{cell.font={bold:true,color:{argb:'FFFFFFFF'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF00A3E0'}};cell.alignment={vertical:'middle',horizontal:'center'};});
+  let r=5;
+  datas.forEach(d=>{
+    const regs=registrosDoDia(d), totalDia=regs.length, dd=distDia(d), abs=dd?(dd.abs||0):0;
+    regs.forEach((h,idx)=>{
+      const cad=(h.diarista_id&&DIARISTAS.find(x=>x.id===h.diarista_id))||findDiaristaByCPF(h.cpf)||{};
+      const row=ws.getRow(r++);
+      row.values=[h.groot_id||cad.groot_id||'',h.nome||cad.nome||'',h.empresa||cad.empresa||'','Diarista',h.escala||cad.escala||h.turno||'',fmtDateBR(d),totalDia,idx===0?abs:''];
+      row.eachCell((cell,col)=>{cell.alignment={vertical:'middle',horizontal:[1,6,7,8].includes(col)?'center':'left'};cell.border={bottom:{style:'thin',color:{argb:'FFD9E2E8'}}};});
+    });
+  });
+  if(!datas.length){ws.mergeCells(`A${r}:H${r}`);ws.getCell(`A${r}`).value='Nenhum dado no período selecionado.';}
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url;a.download=`faltas_abs_${ini}_a_${fim}.xlsx`;a.click();URL.revokeObjectURL(url);
+  toast('Excel exportado com sucesso.','ok');
+}
+
+// Monta, pro modelo do outro sistema, a lista de pessoas únicas lançadas num período — Nome,
+// MATRIZ (fixo), SVC (fixo), ID GROOT e LDAP. LDAP vem do que foi gravado junto do lançamento
+// (h.ldap), que é o valor de Ext que o cadastro tinha naquele dia; só cai pro cadastro atual em
+// lançamentos antigos, de antes desse campo existir.
+function pessoasNoPeriodo(iniISO, fimISO){
+  const registros = HISTORICO.filter(h=>h.data>=iniISO && h.data<=fimISO);
+  const vistos = new Set();
+  const pessoas = [];
+  registros.forEach(h=>{
+    const d = (h.diarista_id && DIARISTAS.find(x=>x.id===h.diarista_id)) || findDiaristaByCPF(h.cpf);
+    const chave = (h.cpf || (d && d.cpf) || normalizeName(h.nome));
+    if(vistos.has(chave)) return;
+    vistos.add(chave);
+    pessoas.push({
+      nome: h.nome || (d && d.nome) || '',
+      matriz: 'CORDOVIL',
+      svc: 'SRJ1',
+      groot_id: h.groot_id || (d && d.groot_id) || '',
+      ldap: h.ldap || (d && d.ext) || ''
+    });
+  });
+  return pessoas.sort((a,b)=>a.nome.localeCompare(b.nome));
+}
+
+// Exporta, no modelo de importação do outro sistema (colunas: Nome Completo *, MATRIZ *, SVC,
+// ID GROOT, LDAP), as pessoas que trabalharam num período — uma linha por pessoa, sem repetir
+// mesmo que tenha mais de um lançamento no período. MATRIZ e SVC são fixos (CORDOVIL / SRJ1).
+function exportModeloOutroSistema(iniISO, fimISO){
+  const pessoas = pessoasNoPeriodo(iniISO, fimISO);
+  if(!pessoas.length){ toast('Nenhum lançamento encontrado nesse período.','err'); return; }
+  const linhas = pessoas.map(p=>({
+    'Nome Completo *': p.nome,
+    'MATRIZ *': p.matriz,
+    'SVC': p.svc,
+    'ID GROOT': p.groot_id,
+    'LDAP': p.ldap
+  }));
+  const wb = XLSX.utils.book_new();
+  const wsDiaristas = XLSX.utils.json_to_sheet(linhas, {header:['Nome Completo *','MATRIZ *','SVC','ID GROOT','LDAP']});
+  XLSX.utils.book_append_sheet(wb, wsDiaristas, 'Diaristas');
+  const wsListas = XLSX.utils.aoa_to_sheet([['Matriz','SVC'], ['CORDOVIL','SRJ1']]);
+  XLSX.utils.book_append_sheet(wb, wsListas, 'Listas');
+  const sufixo = iniISO===fimISO ? iniISO : `${iniISO}_a_${fimISO}`;
+  XLSX.writeFile(wb, `importacao_diaristas_${sufixo}.xlsx`);
+  toast(`Exportação gerada com ${linhas.length} pessoa(s): importacao_diaristas_${sufixo}.xlsx`, 'ok');
+}
+
+async function limparDistribuicaoOrfa(datas){
+  for(const d of datas){
+    if(registrosDoDia(d).length>0) continue;
+    const dd = distDia(d);
+    if(!dd || dd.plantao_responsavel) continue;
+    const ok = await sbDelete('distribuicao_diaria', dd.id);
+    if(ok) DIST_DIARIA = DIST_DIARIA.filter(x=>x.id!==dd.id);
+  }
+}
+
+/* ===================== HISTÓRICO ===================== */
+function renderHistorico(c){
+  const state = renderHistorico._state || {q:'', ini:'', fim:'', cpf:'', nome:'', groot:'', empresa:'', turno:'', cargo:'', dia:''};
+  renderHistorico._state = state;
+  // Mantém as marcações mesmo quando a tela é redesenhada/atualizada automaticamente.
+  const selecionados = renderHistorico._selecionados || new Set();
+  renderHistorico._selecionados = selecionados;
+  const panel = document.createElement('div');
+  panel.className='panel';
+  panel.innerHTML = `
+    <div class="hist-filtros">
+      <div class="field mb0 hf-busca"><label>Pesquisar</label><input id="fQ" type="search" placeholder="Nome, GROOT, empresa, observação, horário…" value="${esc(state.q||'')}"></div>
+      <div class="field mb0"><label>De</label><input type="date" id="fIni" value="${state.ini}"></div>
+      <div class="field mb0"><label>Até</label><input type="date" id="fFim" value="${state.fim}"></div>
+      <div class="field mb0"><label>Empresa</label><select id="fEmpresa"><option value="">Todas</option>${empresasUsadas().map(e=>`<option ${state.empresa===e?'selected':''}>${e}</option>`).join('')}</select></div>
+      <div class="field mb0"><label>Turno</label><select id="fTurno"><option value="">Todos</option>${['T1','T2','T3'].map(t=>`<option ${state.turno===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="field mb0"><label>Dia</label><select id="fDia"><option value="">Todos</option>${DIAS_SEMANA.map(d=>`<option value="${d}" ${state.dia===d?'selected':''}>${d.split('-')[0]}</option>`).join('')}</select></div>
+      <div class="hf-botoes">
+        <button class="btn secondary sm" id="clearFilters">Limpar</button>
+        <button class="btn secondary sm" id="expHist">⬇ CSV</button>
+        <button class="btn secondary sm" id="delSelected" style="color:var(--red);border-color:var(--red);" disabled>Excluir selecionados (0)</button>
+        <button class="btn sm" id="applyFilters" hidden>Aplicar</button>
+      </div>
+    </div>
+    <div class="table-wrap mt16" id="hTable"></div>
+  `;
+  c.appendChild(panel);
+  function getFiltered(){
+    return HISTORICO.filter(h=>{
+      if(state.ini && h.data<state.ini) return false;
+      if(state.fim && h.data>state.fim) return false;
+      if(state.cpf && !onlyDigits(h.cpf).includes(onlyDigits(state.cpf))) return false;
+      if(state.nome && !normalizeName(h.nome).includes(normalizeName(state.nome))) return false;
+      if(state.groot && !(h.groot_id||'').includes(state.groot)) return false;
+      if(state.empresa && h.empresa!==state.empresa) return false;
+      if(state.turno && h.turno!==state.turno) return false;
+      if(state.dia && diaSemana(h.data)!==state.dia) return false;
+      const q = (state.q||'').trim();
+      if(q){
+        const texto = normalizeName([h.nome, h.groot_id, h.empresa, h.cargo, h.turno, h.horario_entrada, fmtDateBR(h.data), h.data, diaSemana(h.data), h.observacao, h.ldap,
+          fmtBatida(h.qr_entrada_batida_em,h.data), fmtBatida(h.qr_saida_batida_em,h.data), plantaoDe(h.data), isAdmin()?h.cpf:'', isAdmin()?formatCPF(h.cpf):''].filter(Boolean).join(' | '));
+        const partes = normalizeName(q).split(' ').filter(Boolean);
+        if(!partes.every(p=>texto.includes(p))) return false;
+      }
+      return true;
+    }).sort((a,b)=>b.data.localeCompare(a.data));
+  }
+  function updateDelBtn(){
+    const btn = panel.querySelector('#delSelected');
+    btn.textContent = `Excluir selecionados (${selecionados.size})`;
+    btn.disabled = selecionados.size===0;
+  }
+  function draw(){
+    const temFiltro = !!((state.q||'').trim()||state.ini||state.fim||state.empresa||state.turno||state.dia);
+    if(!temFiltro){
+      document.getElementById('hTable').innerHTML = '';
+      return;
+    }
+    const list = getFiltered();
+    const visiveis = list.slice(0,500);
+    document.getElementById('hTable').innerHTML = `
+      <table><thead><tr><th><input type="checkbox" id="selAllHist"></th><th>Data</th><th>Dia</th><th>Nome</th><th>CPF</th><th>GROOT ID</th><th>Empresa</th><th>Cargo</th><th>Turno</th><th>Horário previsto</th><th>Entrada (ponto)</th><th>Saída (ponto)</th><th></th></tr></thead>
+      <tbody>${visiveis.length?visiveis.map(h=>`<tr><td><input type="checkbox" class="rowSel" data-id="${h.id}" ${selecionados.has(h.id)?'checked':''}></td><td>${fmtDateBR(h.data)}</td><td>${diaSemana(h.data)}</td><td><span class="link" data-d="${h.diarista_id}">${esc(h.nome)}</span></td><td>${formatCPF(h.cpf)}</td><td>${esc(h.groot_id||'-')}</td><td><span class="pill empresa">${esc(h.empresa)}</span></td><td>${esc(h.cargo)}</td><td>${esc(h.turno)}</td><td>${esc(h.horario_entrada)}</td><td>${fmtBatida(h.qr_entrada_batida_em,h.data)}</td><td>${fmtBatida(h.qr_saida_batida_em,h.data)}</td><td><span class="link small" data-del="${h.id}">excluir</span></td></tr>`).join(''):'<tr><td colspan="13" class="muted">Nenhum registro encontrado.</td></tr>'}</tbody></table>
+      ${list.length>500?`<div class="muted small mt8">Mostrando 500 de ${list.length} registros. Refine os filtros para ver mais detalhes.</div>`:''}
+    `;
+    document.getElementById('hTable').querySelectorAll('[data-d]').forEach(el=>el.addEventListener('click',()=>{ if(el.dataset.d){currentView='banco'; fichaDiaristaId=el.dataset.d; navigate();} }));
+    document.getElementById('hTable').querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click', async ()=>{
+      if(!confirm('Excluir este lançamento do histórico? Esta ação não pode ser desfeita.')) return;
+      const ok = await sbDelete('historico_diarias', el.dataset.del);
+      if(!ok) return;
+      const registro = HISTORICO.find(h=>h.id===el.dataset.del);
+      HISTORICO = HISTORICO.filter(h=>h.id!==el.dataset.del);
+      selecionados.delete(el.dataset.del);
+      if(registro) await limparDistribuicaoOrfa([registro.data]);
+      toast('Lançamento excluído.','ok');
+      draw();
+      updateDelBtn();
+    }));
+    const selAll = document.getElementById('selAllHist');
+    selAll.checked = visiveis.length>0 && visiveis.every(h=>selecionados.has(h.id));
+    selAll.onchange = ()=>{
+      visiveis.forEach(h=>{ if(selAll.checked) selecionados.add(h.id); else selecionados.delete(h.id); });
+      draw();
+      updateDelBtn();
+    };
+    document.getElementById('hTable').querySelectorAll('.rowSel').forEach(cb=>cb.addEventListener('change', ()=>{
+      if(cb.checked) selecionados.add(cb.dataset.id); else selecionados.delete(cb.dataset.id);
+      updateDelBtn();
+      selAll.checked = visiveis.length>0 && visiveis.every(h=>selecionados.has(h.id));
+    }));
+  }
+  draw();
+  updateDelBtn();
+
+  // Salva o filtro assim que o usuário altera o campo. Isso evita perder a data
+  // quando a atualização automática de 15s reconstrói a tela.
+  function syncFilters(redraw=true){
+    state.ini=panel.querySelector('#fIni').value; state.fim=panel.querySelector('#fFim').value;
+    state.q=panel.querySelector('#fQ').value; state.cpf=''; state.nome=''; state.groot='';
+    state.empresa=panel.querySelector('#fEmpresa').value;
+    state.turno=panel.querySelector('#fTurno').value; state.dia=panel.querySelector('#fDia').value;
+    if(redraw) draw();
+  }
+  panel.querySelectorAll('#fIni,#fFim,#fEmpresa,#fTurno,#fDia').forEach(el=>el.addEventListener('change', ()=>syncFilters(true)));
+  { let _t=null; panel.querySelector('#fQ').addEventListener('input', ()=>{ clearTimeout(_t); _t=setTimeout(()=>syncFilters(true),250); }); }
+  panel.querySelector('#applyFilters').onclick = ()=>syncFilters(true);
+  panel.querySelector('#clearFilters').onclick = ()=>{
+    renderHistorico._state={q:'', ini:'', fim:'', cpf:'', nome:'', groot:'', empresa:'', turno:'', cargo:'', dia:''};
+    selecionados.clear();
+    navigate();
+  };
+  panel.querySelector('#expHist').onclick = ()=>{
+    const list = getFiltered();
+    exportCSV('historico.csv', ['Data','Dia','Nome','CPF','GROOT ID','Empresa','Cargo','Turno','Horário previsto','Entrada (ponto)','Saída (ponto)'],
+      list.map(h=>[fmtDateBR(h.data), diaSemana(h.data), h.nome, formatCPF(h.cpf), h.groot_id||'', h.empresa, h.cargo, h.turno, h.horario_entrada, fmtBatida(h.qr_entrada_batida_em,h.data), fmtBatida(h.qr_saida_batida_em,h.data)]));
+  };
+  panel.querySelector('#delSelected').onclick = async ()=>{
+    if(selecionados.size===0) return;
+    if(!confirm(`Excluir ${selecionados.size} lançamento(s) selecionado(s) do histórico? Esta ação não pode ser desfeita.`)) return;
+    const ids = Array.from(selecionados);
+    const datasAfetadas = new Set();
+    let ok=0;
+    for(const id of ids){
+      const registro = HISTORICO.find(h=>h.id===id);
+      const r = await sbDelete('historico_diarias', id);
+      if(r){ ok++; HISTORICO = HISTORICO.filter(h=>h.id!==id); if(registro) datasAfetadas.add(registro.data); }
+    }
+    selecionados.clear();
+    await limparDistribuicaoOrfa(Array.from(datasAfetadas));
+    toast(ok+' lançamento(s) excluído(s).','ok');
+    draw();
+    updateDelBtn();
+  };
+}
+
+/* ===================== RELATÓRIOS ===================== */
+let charts = {};
+function renderRelatorios(c){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div id="repBody"></div><div id="repExport" class="mt24" style="margin-top:24px;"></div><div id="repExportLanc" class="mt24" style="margin-top:24px;"></div>`;
+  c.appendChild(wrap);
+  relatorioMensal(wrap.querySelector('#repBody'));
+  // A pesquisa/exportação por período agora fica no Banco de Diaristas.
+  wrap.querySelector('#repExport').remove();
+  renderExportLancamentos(wrap.querySelector('#repExportLanc'));
+}
+
+// Seção autônoma (não depende do mês selecionado acima): escolher um dia específico ou um
+// intervalo de datas e ver/exportar a lista de diaristas lançados nesse período, no formato
+// exato do modelo do outro sistema (Nome Completo, MATRIZ, SVC, ID GROOT, LDAP).
+function renderExportModelo(el){
+  const exp = renderExportModelo._exp || {modo:'dia', dia: todayISO(), ini: todayISO(), fim: todayISO()};
+  renderExportModelo._exp = exp;
+  el.innerHTML = `<div class="panel">
+    <div class="flex gap12" style="margin-bottom:12px;flex-wrap:wrap;align-items:end;">
+      <div class="field mb0">
+        <label>Período de exportação</label>
+        <select id="rExpModo">
+          <option value="dia" ${exp.modo==='dia'?'selected':''}>Data única</option>
+          <option value="intervalo" ${exp.modo==='intervalo'?'selected':''}>Intervalo de datas</option>
+        </select>
+      </div>
+      <div class="field mb0" id="rExpDiaWrap" style="${exp.modo==='dia'?'':'display:none;'}">
+        <label>Data</label><input type="date" id="rExpDia" value="${exp.dia}">
+      </div>
+      <div class="field mb0" id="rExpIniWrap" style="${exp.modo==='intervalo'?'':'display:none;'}">
+        <label>De</label><input type="date" id="rExpIni" value="${exp.ini}">
+      </div>
+      <div class="field mb0" id="rExpFimWrap" style="${exp.modo==='intervalo'?'':'display:none;'}">
+        <label>Até</label><input type="date" id="rExpFim" value="${exp.fim}">
+      </div>
+      <button class="btn sm" id="rExportXlsx" style="align-self:end;margin-left:auto;">Exportar Excel (.xlsx)</button>
+      <button class="btn secondary sm" id="rExportCsv" style="align-self:end;">Exportar CSV</button>
+    </div>
+    <div class="table-wrap" id="rTableModelo"></div>
+  </div>`;
+
+  function getRange(){ return exp.modo==='dia' ? [exp.dia, exp.dia] : [exp.ini, exp.fim]; }
+
+  function draw(){
+    const [ini, fim] = getRange();
+    const pessoas = pessoasNoPeriodo(ini, fim);
+    document.getElementById('rTableModelo').innerHTML = `
+      <table><thead><tr><th>Nome Completo</th><th>MATRIZ</th><th>SVC</th><th>ID GROOT</th><th>LDAP</th></tr></thead>
+      <tbody>${pessoas.length?pessoas.map(p=>`<tr>
+          <td>${esc(p.nome)}</td><td>${esc(p.matriz)}</td><td>${esc(p.svc)}</td>
+          <td>${esc(p.groot_id)}</td><td>${esc(p.ldap)}</td>
+        </tr>`).join(''):'<tr><td colspan="5" class="muted">Nenhum diarista lançado nesse período.</td></tr>'}</tbody></table>`;
+  }
+  draw();
+
+  document.getElementById('rExpModo').onchange = e=>{
+    exp.modo = e.target.value;
+    document.getElementById('rExpDiaWrap').style.display = exp.modo==='dia' ? '' : 'none';
+    document.getElementById('rExpIniWrap').style.display = exp.modo==='intervalo' ? '' : 'none';
+    document.getElementById('rExpFimWrap').style.display = exp.modo==='intervalo' ? '' : 'none';
+    draw();
+  };
+  document.getElementById('rExpDia').onchange = e=>{ exp.dia=e.target.value; draw(); };
+  document.getElementById('rExpIni').onchange = e=>{ exp.ini=e.target.value; draw(); };
+  document.getElementById('rExpFim').onchange = e=>{ exp.fim=e.target.value; draw(); };
+  document.getElementById('rExportXlsx').onclick = ()=>{ const [ini,fim]=getRange(); exportModeloOutroSistema(ini, fim); };
+  document.getElementById('rExportCsv').onclick = ()=>{
+    const [ini, fim] = getRange();
+    const pessoas = pessoasNoPeriodo(ini, fim);
+    if(!pessoas.length){ toast('Nenhum lançamento encontrado nesse período.','err'); return; }
+    const sufixo = ini===fim ? ini : `${ini}_a_${fim}`;
+    exportCSV(`importacao_diaristas_${sufixo}.csv`, ['Nome Completo *','MATRIZ *','SVC','ID GROOT','LDAP'],
+      pessoas.map(p=>[p.nome, p.matriz, p.svc, p.groot_id, p.ldap]));
+  };
+}
+
+// ===================== EXPORTAR LANÇAMENTOS (modelo_importacao_lancamentos) =====================
+// Uma linha por lançamento (diarista + dia) no período filtrado — ao contrário do export de
+// Diaristas acima, aqui NÃO deduplica por pessoa, pois o modelo é de lançamentos diários.
+// Data, Empresa, Turno, Nome, ID GROOT e MATRIZ/SVC vêm do histórico; Motivo, Solicitado Por,
+// Autorizado Por e Grupo são preenchidos uma vez na tela e aplicados a todas as linhas do período.
+function lancamentosNoPeriodo(iniISO, fimISO){
+  return HISTORICO.filter(h=>h.data>=iniISO && h.data<=fimISO)
+    .slice()
+    .sort((a,b)=> a.data===b.data ? (a.nome||'').localeCompare(b.nome||'') : a.data.localeCompare(b.data))
+    .map(h=>({
+      data: h.data,
+      empresa: h.empresa || '',
+      turno: h.turno || '',
+      nome: h.nome || '',
+      groot_id: h.groot_id || '',
+      matriz: 'CORDOVIL',
+      svc: 'SRJ1'
+    }));
+}
+
+const LANC_MOTIVOS = ['ADEQUAÇÃO DE QUADRO','ABSENTEÍSMO','VOLUME ACIMA DO PREVISTO','PULMÃO KN'];
+
+function renderExportLancamentos(el){
+  const st = renderExportLancamentos._st || {
+    modo:'dia', dia: todayISO(), ini: todayISO(), fim: todayISO(),
+    motivo:'', solicitado:'', autorizado:'', grupo:''
+  };
+  renderExportLancamentos._st = st;
+
+  el.innerHTML = `<div class="panel">
+    <h2 style="margin-top:0;">Exportar Lançamentos (modelo de importação)</h2>
+    <p class="small muted">Filtra os lançamentos por data e exporta no mesmo formato da planilha modelo (aba "Lancamentos" + aba "Listas").</p>
+    <div class="lexp-filtros">
+      <div class="field mb0">
+        <label>Período</label>
+        <select id="lExpModo">
+          <option value="dia" ${st.modo==='dia'?'selected':''}>Data única</option>
+          <option value="intervalo" ${st.modo==='intervalo'?'selected':''}>Intervalo de datas</option>
+        </select>
+      </div>
+      <div class="field mb0" id="lExpDiaWrap" style="${st.modo==='dia'?'':'display:none;'}">
+        <label>Data</label><input type="date" id="lExpDia" value="${st.dia}">
+      </div>
+      <div class="field mb0" id="lExpIniWrap" style="${st.modo==='intervalo'?'':'display:none;'}">
+        <label>De</label><input type="date" id="lExpIni" value="${st.ini}">
+      </div>
+      <div class="field mb0" id="lExpFimWrap" style="${st.modo==='intervalo'?'':'display:none;'}">
+        <label>Até</label><input type="date" id="lExpFim" value="${st.fim}">
+      </div>
+      <div class="field mb0 lexp-motivo">
+        <label title="Aplicado a todas as linhas">Motivo</label>
+        <select id="lExpMotivo">
+          <option value="">Selecione...</option>
+          ${LANC_MOTIVOS.map(m=>`<option value="${esc(m)}" ${st.motivo===m?'selected':''}>${esc(m)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field mb0"><label>Solicitado Por</label>
+        <select id="lExpSolicitado">
+          <option value="">Selecione...</option>
+          <option value="MERCADO LIVRE" ${st.solicitado==='MERCADO LIVRE'?'selected':''}>MERCADO LIVRE</option>
+          <option value="KN" ${st.solicitado==='KN'?'selected':''}>KN</option>
+        </select>
+      </div>
+      <div class="field mb0"><label>Autorizado Por</label>
+        <select id="lExpAutorizado">
+          <option value="">Selecione...</option>
+          <option value="MERCADO LIVRE" ${st.autorizado==='MERCADO LIVRE'?'selected':''}>MERCADO LIVRE</option>
+          <option value="KN" ${st.autorizado==='KN'?'selected':''}>KN</option>
+        </select>
+      </div>
+      <div class="field mb0 lexp-grupo"><label>Grupo</label><input id="lExpGrupo" value="${esc(st.grupo)}" placeholder="Ex: 1"></div>
+      <button class="btn sm" id="lExportXlsx">⬇ Exportar (.xlsx)</button>
+    </div>
+    <div class="table-wrap" id="lTableModelo"></div>
+  </div>`;
+
+  function getRange(){ return st.modo==='dia' ? [st.dia, st.dia] : [st.ini, st.fim]; }
+
+  function draw(){
+    const [ini, fim] = getRange();
+    const linhas = lancamentosNoPeriodo(ini, fim);
+    document.getElementById('lTableModelo').innerHTML = `
+      <table><thead><tr>
+        <th>Data</th><th>Empresa</th><th>Motivo</th><th>Turno</th><th>Solicitado Por</th><th>Autorizado Por</th><th>MATRIZ</th><th>SVC</th><th>Nome Diarista</th><th>ID GROOT</th><th>Grupo</th>
+      </tr></thead>
+      <tbody>${linhas.length?linhas.map(l=>`<tr>
+          <td>${fmtDateBR(l.data)}</td><td>${esc(l.empresa)}</td><td>${esc(st.motivo)}</td><td>${esc(l.turno)}</td>
+          <td>${esc(st.solicitado)}</td><td>${esc(st.autorizado)}</td><td>${esc(l.matriz)}</td><td>${esc(l.svc)}</td>
+          <td>${esc(l.nome)}</td><td>${esc(l.groot_id)}</td><td>${esc(st.grupo)}</td>
+        </tr>`).join(''):'<tr><td colspan="11" class="muted">Nenhum lançamento encontrado nesse período.</td></tr>'}</tbody></table>`;
+  }
+  draw();
+
+  document.getElementById('lExpModo').onchange = e=>{
+    st.modo = e.target.value;
+    document.getElementById('lExpDiaWrap').style.display = st.modo==='dia' ? '' : 'none';
+    document.getElementById('lExpIniWrap').style.display = st.modo==='intervalo' ? '' : 'none';
+    document.getElementById('lExpFimWrap').style.display = st.modo==='intervalo' ? '' : 'none';
+    draw();
+  };
+  document.getElementById('lExpDia').onchange = e=>{ st.dia=e.target.value; draw(); };
+  document.getElementById('lExpIni').onchange = e=>{ st.ini=e.target.value; draw(); };
+  document.getElementById('lExpFim').onchange = e=>{ st.fim=e.target.value; draw(); };
+  document.getElementById('lExpMotivo').onchange = e=>{ st.motivo=e.target.value; draw(); };
+  document.getElementById('lExpSolicitado').onchange = e=>{ st.solicitado=e.target.value; draw(); };
+  document.getElementById('lExpAutorizado').onchange = e=>{ st.autorizado=e.target.value; draw(); };
+  document.getElementById('lExpGrupo').oninput = e=>{ st.grupo=e.target.value; draw(); };
+  document.getElementById('lExportXlsx').onclick = ()=>{
+    const [ini, fim] = getRange();
+    exportLancamentosXlsx(ini, fim, {motivo:st.motivo, solicitado:st.solicitado, autorizado:st.autorizado, grupo:st.grupo});
+  };
+}
+
+// Gera o .xlsx exatamente no formato de modelo_importacao_lancamentos.xlsx: aba "Lancamentos"
+// (uma linha por diarista/dia no período) + aba "Listas" com as opções de Motivo/Turno/Parte/Matriz/SVC,
+// copiada do próprio modelo enviado.
+function exportLancamentosXlsx(iniISO, fimISO, extras){
+  const linhas = lancamentosNoPeriodo(iniISO, fimISO);
+  if(!linhas.length){ toast('Nenhum lançamento encontrado nesse período.','err'); return; }
+  if(!extras.motivo){ toast('Selecione o Motivo antes de exportar.','err'); return; }
+
+  const header = ['Data *','Empresa *','Motivo *','Turno *','Solicitado Por','Autorizado Por','MATRIZ *','SVC','Nome Diarista *','ID GROOT','Grupo'];
+  const dados = linhas.map(l=>({
+    'Data *': fmtDateBR(l.data),
+    'Empresa *': l.empresa,
+    'Motivo *': extras.motivo,
+    'Turno *': l.turno,
+    'Solicitado Por': extras.solicitado,
+    'Autorizado Por': extras.autorizado,
+    'MATRIZ *': l.matriz,
+    'SVC': l.svc,
+    'Nome Diarista *': l.nome,
+    'ID GROOT': l.groot_id,
+    'Grupo': extras.grupo
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const wsLanc = XLSX.utils.json_to_sheet(dados, {header});
+  XLSX.utils.book_append_sheet(wb, wsLanc, 'Lancamentos');
+
+  const wsListas = XLSX.utils.aoa_to_sheet([
+    ['Motivo','Turno','Parte','Matriz','SVC'],
+    ['ADEQUAÇÃO DE QUADRO','T1','KUEHNE + NAGEL','CORDOVIL','SRJ1'],
+    ['ABSENTEÍSMO','T2','MERCADO LIVRE','',''],
+    ['VOLUME ACIMA DO PREVISTO','T3','','',''],
+    ['PULMÃO KN','','','',''],
+  ]);
+  XLSX.utils.book_append_sheet(wb, wsListas, 'Listas');
+
+  const sufixo = iniISO===fimISO ? iniISO : `${iniISO}_a_${fimISO}`;
+  XLSX.writeFile(wb, `lancamentos_${sufixo}.xlsx`);
+  toast(`Exportação gerada com ${linhas.length} lançamento(s): lancamentos_${sufixo}.xlsx`, 'ok');
+}
+
+function relatorioMensal(el){
+  const mes = relatorioMensal._mes || todayISO().slice(0,7);
+  el.innerHTML = `<div class="panel">
+    <div class="field" style="max-width:220px;"><label>Mês de referência</label><input type="month" id="mMes" value="${mes}"></div>
+    <div id="mBody"></div>
+  </div>`;
+  function draw(m){
+    const regs = HISTORICO.filter(h=>h.data.startsWith(m));
+    const unicos = new Set(regs.map(h=>h.diarista_id||h.cpf)).size;
+    const dias = new Set(regs.map(h=>h.data)).size;
+    let totMeliMes=0, totKnMes=0;
+    DIST_DIARIA.filter(d=>d.data.startsWith(m)).forEach(d=>{ totMeliMes+=(d.meli||0); totKnMes+=(d.kn||0); });
+    const totTurno = {T1:0,T2:0,T3:0}; regs.forEach(r=>{ if(totTurno[r.turno]!==undefined) totTurno[r.turno]++; });
+
+    document.getElementById('mBody').innerHTML = `
+      <h2 style="margin-top:18px;">RESUMO MENSAL — ${m}</h2>
+      <div class="cards-row">
+        <div class="card total"><div class="label">Total de registros</div><div class="value">${regs.length}</div></div>
+        <div class="card"><div class="label">Diaristas únicos</div><div class="value">${unicos}</div></div>
+        <div class="card"><div class="label">Dias trabalhados</div><div class="value">${dias}</div></div>
+        <div class="card meli"><div class="label">Total MELI</div><div class="value">${totMeliMes}</div></div>
+        <div class="card kn"><div class="label">Total KN</div><div class="value">${totKnMes}</div></div>
+        <div class="card"><div class="label">Total T1</div><div class="value">${totTurno.T1}</div></div>
+        <div class="card"><div class="label">Total T2</div><div class="value">${totTurno.T2}</div></div>
+        <div class="card"><div class="label">Total T3</div><div class="value">${totTurno.T3}</div></div>
+      </div>
+      <button class="btn secondary sm mt16" id="expMensal">Exportar CSV do mês</button>
+    `;
+    document.getElementById('expMensal').onclick = ()=>{
+      exportCSV(`resumo_mensal_${m}.csv`, ['Data','Dia','Nome','CPF','GROOT ID','Empresa','Cargo','Turno','Entrada'],
+        regs.sort((a,b)=>a.data.localeCompare(b.data)).map(r=>[fmtDateBR(r.data), diaSemana(r.data), r.nome, formatCPF(r.cpf), r.groot_id||'', r.empresa, r.cargo, r.turno, r.horario_entrada]));
+    };
+  }
+  draw(mes);
+  el.querySelector('#mMes').onchange = e=>{ relatorioMensal._mes = e.target.value; draw(e.target.value); };
+}
+
+// Converte "AAAA-MM" no primeiro e último dia daquele mês (formato ISO), pra filtrar HISTORICO.
+function mesParaIntervalo(m){
+  const [ano, mes] = m.split('-').map(Number);
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  return [`${m}-01`, `${m}-${String(ultimoDia).padStart(2,'0')}`];
+}
+
+function exportCSV(filename, header, rows){
+  const esc2 = v => `"${String(v==null?'':v).replace(/"/g,'""')}"`;
+  const csv = [header.map(esc2).join(';'), ...rows.map(r=>r.map(esc2).join(';'))].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+  toast('Exportação gerada: '+filename,'ok');
+}
+
+/* ===================== REGISTROS DOS DIAS =====================
+   Cada dia com diaristas fica registrado aqui com as batidas de entrada e saída
+   (o Dashboard mostra só o dia de hoje). Sábado e domingo são plantão: guarda o
+   nome do assistente responsável pelo plantão (campo plantao_responsavel). */
+function ehFimDeSemana(dataISO){ const [y,m,d]=dataISO.split('-').map(Number); const w=new Date(y,m-1,d).getDay(); return w===0||w===6; }
+function plantaoDe(dataISO){ const dd = distDia(dataISO); return (dd && dd.plantao_responsavel) || ''; }
+async function salvarPlantao(dataISO, nome){
+  const existente = distDia(dataISO);
+  const patch = {plantao_responsavel: nome || null, updated_at: new Date().toISOString()};
+  if(existente){
+    const upd = await sbUpdate('distribuicao_diaria', existente.id, patch);
+    if(!upd) return false;
+    Object.assign(existente, patch); return true;
+  }
+  const ins = await sbInsert('distribuicao_diaria', {data:dataISO, meli:0, kn:0, ...patch});
+  if(!ins) return false;
+  DIST_DIARIA.push(ins); return true;
+}
+function renderRegistros(c){
+  const todosDias = diasComLancamento();
+  const st = renderRegistros._st || (renderRegistros._st = {mes:'', dia:'', q:'', tipo:'todos', empresa:'', turno:'', situacao:'', resp:''});
+  const meses = Array.from(new Set(todosDias.map(d=>d.slice(0,7))));
+  if(!st.mes || (st.mes!=='todos' && !meses.includes(st.mes))) st.mes = meses[0] || todayISO().slice(0,7);
+  const situacaoDe = x=> x.qr_entrada_batida_em ? (x.qr_saida_batida_em ? 'completo' : 'semsaida') : 'sembatida';
+  const passaFiltroLinha = x=>{
+    if(st.empresa && x.empresa!==st.empresa) return false;
+    if(st.turno && x.turno!==st.turno) return false;
+    if(st.situacao && situacaoDe(x)!==st.situacao) return false;
+    return true;
+  };
+  const filtrosLinhaAtivos = !!(st.empresa||st.turno||st.situacao);
+  const diasFiltrados = todosDias.filter(d=>{
+    if(st.mes!=='todos' && d.slice(0,7)!==st.mes) return false;
+    if(st.tipo==='fds' && !ehFimDeSemana(d)) return false;
+    if(st.tipo==='uteis' && ehFimDeSemana(d)) return false;
+    if(st.resp){ const r = normalizeName(plantaoDe(d)); if(st.resp==='__sem'){ if(r) return false; } else if(r!==st.resp) return false; }
+    if(filtrosLinhaAtivos && !registrosDoDia(d).some(passaFiltroLinha)) return false;
+    return true;
+  });
+  if(st.diaVazio && st.dia && registrosDoDia(st.dia).length) st.diaVazio = false;
+  if(st.diaVazio){ /* data escolhida sem diaristas: mantém para mostrar o aviso */ }
+  else if(!st.dia || !diasFiltrados.includes(st.dia)) st.dia = diasFiltrados[0] || '';
+  const fdsTotal = todosDias.filter(ehFimDeSemana).length;
+  setTitle('Registros', todosDias.length+' dias com diaristas · '+fdsTotal+' de fim de semana · '+todosDias.filter(d=>plantaoDe(d)).length+' com responsável');
+  const nomeMes = m=>{ const [y,mm]=m.split('-'); return new Date(+y,+mm-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,x=>x.toUpperCase()); };
+  const resumo = d=>{ const r=registrosDoDia(d); return {t:r.length, e:r.filter(x=>x.qr_entrada_batida_em).length, s:r.filter(x=>x.qr_saida_batida_em).length}; };
+  const empresas = Array.from(new Set(HISTORICO.map(h=>h.empresa).filter(Boolean))).sort();
+  const turnos = Array.from(new Set(HISTORICO.map(h=>h.turno).filter(Boolean))).sort();
+  const responsaveis = Array.from(new Map(DIST_DIARIA.filter(d=>d.plantao_responsavel).map(d=>[normalizeName(d.plantao_responsavel), d.plantao_responsavel])).entries()).sort((a,b)=>a[0].localeCompare(b[0]));
+  const opt = (v,l,sel)=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(l)}</option>`;
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="reg-tipos tabs" role="tablist">
+      <div class="tab ${st.tipo==='todos'?'active':''}" data-tipo="todos">Todos os dias</div>
+      <div class="tab ${st.tipo==='uteis'?'active':''}" data-tipo="uteis">Segunda a sexta</div>
+      <div class="tab ${st.tipo==='fds'?'active':''}" data-tipo="fds">Plantão fim de semana</div>
+    </div>
+    <section class="panel reg-filtros">
+      <div class="field mb0"><label>Ir para a data</label><input type="date" id="fData" value="${st.dia||''}"></div>
+      <div class="field mb0"><label>Mês</label><select id="fMes">${opt('todos','Todos os meses',st.mes)}${meses.map(m=>opt(m,nomeMes(m),st.mes)).join('')}</select></div>
+      <div class="field mb0"><label>Empresa</label><select id="fEmp">${opt('','Todas',st.empresa)}${empresas.map(e=>opt(e,e,st.empresa)).join('')}</select></div>
+      <div class="field mb0"><label>Turno</label><select id="fTur">${opt('','Todos',st.turno)}${turnos.map(t=>opt(t,t,st.turno)).join('')}</select></div>
+      <div class="field mb0"><label>Situação</label><select id="fSit">${opt('','Todas',st.situacao)}${opt('completo','Completo (entrada e saída)',st.situacao)}${opt('semsaida','Sem saída',st.situacao)}${opt('sembatida','Sem batida',st.situacao)}</select></div>
+      <div class="field mb0"><label>Responsável do dia</label><select id="fResp">${opt('','Todos',st.resp)}${opt('__sem','Sem responsável',st.resp)}${responsaveis.map(([k,v])=>opt(k,v,st.resp)).join('')}</select></div>
+      <button type="button" class="btn secondary sm" id="fLimpar" ${(st.empresa||st.turno||st.situacao||st.resp||st.tipo!=='todos')?'':'disabled'}>Limpar filtros</button>
+    </section>
+    <div class="reg-grid">
+      <section class="panel reg-dias">
+        <div class="flex between" style="margin-bottom:10px"><h2 style="margin:0">Dias</h2><span class="small muted">${diasFiltrados.length}</span></div>
+        <div class="reg-lista">${diasFiltrados.length?diasFiltrados.map(d=>{const r=resumo(d);const ok=r.e===r.t&&r.s===r.t;const fds=ehFimDeSemana(d);const resp=plantaoDe(d);return `<button type="button" class="reg-dia ${d===st.dia?'on':''} ${fds?'fds':''}" data-dia="${d}">
+          <span class="rd-data"><b>${fmtDateBR(d).slice(0,5)}</b><small>${fds?diaSemana(d).slice(0,3)+' · plantão':diaSemana(d).split('-')[0]}</small></span>
+          <span class="rd-num">${r.t}<small>diaristas</small></span>
+          <span class="pill ${ok?'ativo':'novo'}" title="Entradas / Saídas batidas">${r.e}/${r.s}</span>
+          ${(resp||fds)?`<span class="rd-resp ${resp?'':'vazio'}">👤 ${resp?esc(resp):'responsável não informado'}</span>`:''}</button>`}).join(''):'<div class="muted small">Nenhum dia encontrado com esses filtros.</div>'}</div>
+        <button type="button" class="btn secondary sm w100" id="regMesCsv" style="margin-top:12px" ${diasFiltrados.length?'':'disabled'}>⬇ Baixar dias filtrados (CSV)</button>
+      </section>
+      <section class="panel reg-det" id="regDet"></section>
+    </div>`;
+  c.appendChild(wrap);
+
+  const colunas = r=>[fmtDateBR(r.data), diaSemana(r.data), ehFimDeSemana(r.data)?'Plantão':'Dia útil', plantaoDe(r.data), r.nome, formatCPF(r.cpf), r.groot_id||'', r.empresa, r.cargo, r.turno, r.horario_entrada||'', fmtBatida(r.qr_entrada_batida_em,r.data), fmtBatida(r.qr_saida_batida_em,r.data), {completo:'Completo',semsaida:'Sem saída',sembatida:'Sem batida'}[situacaoDe(r)]];
+  const header = ['Data','Dia','Tipo','Responsável do dia','Nome','CPF','GROOT ID','Empresa','Cargo','Turno','Horário previsto','Entrada (ponto)','Saída (ponto)','Situação'];
+  const ordenar = l=>[...l].sort((a,b)=>String(a.turno).localeCompare(String(b.turno)) || normalizeName(a.nome).localeCompare(normalizeName(b.nome)));
+
+  const situacaoHtml = x=>({completo:'<span class="status-present">● Completo</span>',semsaida:'<span class="status-pending">● Sem saída</span>',sembatida:'<span class="status-pending">● Sem batida</span>'}[situacaoDe(x)]);
+  const horaDe = iso=>{ if(!iso) return ''; const d=new Date(iso); return isNaN(d)?'':String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+  const empresasOpc = Array.from(new Set(['TSI','MELI','KN', ...empresas]));
+  function linhaEditavel(x){
+    const sel = (campo, ops, v)=>`<select data-campo="${campo}" data-id="${x.id}">${ops.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}${v&&!ops.includes(v)?`<option selected>${esc(v)}</option>`:''}</select>`;
+    return `<tr data-row="${x.id}"><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td>
+      <td>${sel('empresa', empresasOpc, x.empresa||'')}</td>
+      <td>${sel('turno', ['T1','T2','T3'], x.turno||'')}</td>
+      <td><input type="time" data-campo="horario_entrada" data-id="${x.id}" value="${esc(String(x.horario_entrada||'').slice(0,5))}"></td>
+      <td><input type="time" data-campo="qr_entrada_batida_em" data-id="${x.id}" value="${horaDe(x.qr_entrada_batida_em)}" title="Batida de entrada"></td>
+      <td><input type="time" data-campo="qr_saida_batida_em" data-id="${x.id}" value="${horaDe(x.qr_saida_batida_em)}" title="Batida de saída (se for menor que a entrada, conta como dia seguinte)"></td>
+      <td>${situacaoHtml(x)}</td>
+      <td><input data-campo="observacao" data-id="${x.id}" value="${esc(x.observacao||'')}" placeholder="—" class="reg-obs-in"></td>
+      <td><button type="button" class="reg-del" data-del-reg="${x.id}" title="Remover este diarista do dia">✕</button></td></tr>`;
+  }
+  // transforma "HH:MM" da batida em data/hora completa (saída menor que entrada = dia seguinte)
+  function montarBatida(reg, campo, hhmm){
+    if(!hhmm) return null;
+    const [y,m,d] = reg.data.split('-').map(Number); const [hh,mm] = hhmm.split(':').map(Number);
+    const dt = new Date(y, m-1, d, hh, mm, 0);
+    if(campo==='qr_saida_batida_em'){
+      const ent = reg.qr_entrada_batida_em ? new Date(reg.qr_entrada_batida_em) : null;
+      const refH = ent ? ent.getHours()*60+ent.getMinutes() : (parseInt(String(reg.horario_entrada||'').slice(0,2))||0)*60;
+      if(hh*60+mm <= refH) dt.setDate(dt.getDate()+1);
+    }
+    return dt.toISOString();
+  }
+  const addBoxHtml = ()=>`<div class="reg-add">
+        <span class="rs-tit" style="margin:0 0 10px">Adicionar diarista neste dia</span>
+        <div class="reg-add-campos">
+          <input id="addBusca" list="addLista" placeholder="Nome ou GROOT ID do Banco de Diaristas" style="flex:2;min-width:220px">
+          <datalist id="addLista">${DIARISTAS.filter(d=>!d.status||String(d.status).toUpperCase()==='ATIVO').map(d=>`<option value="${esc(d.nome)} · ${esc(d.groot_id||'sem GROOT')}">`).join('')}</datalist>
+          <select id="addTurno"><option>T1</option><option>T2</option><option>T3</option></select>
+          <input id="addHora" type="time" value="05:00" style="width:120px">
+          <button type="button" class="btn sm" id="addBtn">+ Adicionar</button>
+        </div></div>`;
+  function ligarEdicao(det){
+    if(!isAdmin()) return;
+    det.querySelectorAll('[data-campo]').forEach(el=>el.addEventListener('change', async ()=>{
+      const reg = HISTORICO.find(h=>String(h.id)===el.dataset.id); if(!reg) return;
+      const campo = el.dataset.campo; let valor = el.value.trim();
+      if(campo==='qr_entrada_batida_em' || campo==='qr_saida_batida_em') valor = montarBatida(reg, campo, valor);
+      else if(campo==='observacao') valor = valor || null;
+      const patch = {[campo]: valor};
+      el.disabled = true;
+      const upd = await sbUpdate('historico_diarias', reg.id, patch);
+      el.disabled = false;
+      if(upd){ Object.assign(reg, patch); el.classList.add('salvo'); setTimeout(()=>el.classList.remove('salvo'), 1200); toast('Salvo: '+reg.nome+'.','ok'); if(campo!=='observacao') detalhe(); }
+    }));
+    det.querySelectorAll('[data-del-reg]').forEach(b=>b.onclick = async ()=>{
+      const reg = HISTORICO.find(h=>String(h.id)===b.dataset.delReg); if(!reg) return;
+      if(!confirm('Remover '+reg.nome+' do dia '+fmtDateBR(reg.data)+'? Essa ação não pode ser desfeita.')) return;
+      const ok = await sbDelete('historico_diarias', reg.id);
+      if(ok){ HISTORICO = HISTORICO.filter(h=>h.id!==reg.id); toast(reg.nome+' removido do dia.','ok'); navigate(); }
+    });
+    const addBtn = det.querySelector('#addBtn');
+    if(addBtn) addBtn.onclick = async ()=>{
+      const txt = det.querySelector('#addBusca').value.trim();
+      if(!txt) return toast('Digite o nome ou o GROOT ID do diarista.','warn');
+      const groot = (txt.split(' · ')[1]||'').trim();
+      const nomeN = normalizeName(txt.split(' · ')[0]);
+      let cad = DIARISTAS.find(d=>groot && groot!=='sem GROOT' && String(d.groot_id)===groot && normalizeName(d.nome)===nomeN)
+             || DIARISTAS.find(d=>String(d.groot_id||'')===txt) || DIARISTAS.find(d=>normalizeName(d.nome)===nomeN);
+      if(!cad) return toast('Diarista não encontrado no Banco. Cadastre primeiro em Banco → Novo Diarista.','warn');
+      if(registrosDoDia(st.dia).some(h=>h.diarista_id===cad.id)) return toast(cad.nome+' já está neste dia.','warn');
+      const turno = det.querySelector('#addTurno').value, hora = det.querySelector('#addHora').value;
+      addBtn.disabled = true;
+      const novo = await sbInsert('historico_diarias', {diarista_id:cad.id, data:st.dia, dia_semana:diaSemana(st.dia), turno, horario_entrada:hora, cpf:cad.cpf, nome:cad.nome, groot_id:cad.groot_id, empresa:cad.empresa||'TSI', cargo:cad.cargo||'AUX', ldap:cad.ext||'', created_at:new Date().toISOString()});
+      addBtn.disabled = false;
+      if(novo){ HISTORICO.push(novo); st.diaVazio = false; toast(cad.nome+' adicionado em '+fmtDateBR(st.dia)+'.','ok'); navigate(); }
+    };
+  }
+  function ligarSalvarResp(det){
+    const bs = det.querySelector('#plSalvar'); if(!bs) return;
+    const salvar = async ()=>{
+      const nome = det.querySelector('#plNome').value.trim().replace(/\s+/g,' ');
+      bs.disabled = true; const ok = await salvarPlantao(st.dia, nome); bs.disabled = false;
+      if(ok){ toast(nome?'Responsável de '+fmtDateBR(st.dia)+': '+nome+' salvo.':'Responsável do dia removido.','ok'); navigate(); }
+    };
+    bs.onclick = salvar;
+    det.querySelector('#plNome').addEventListener('keydown', e=>{ if(e.key==='Enter') salvar(); });
+  }
+  function detalhe(){
+    const det = wrap.querySelector('#regDet');
+    if(!st.dia){ det.innerHTML = '<h2>Registro do dia</h2><div class="muted">Nenhum registro para mostrar com esses filtros.</div>'; return; }
+    if(st.diaVazio){ det.innerHTML = `<h2>Registro do dia</h2><div class="reg-titulo">${fmtDateBR(st.dia)} <span class="muted">· ${diaSemana(st.dia)}</span></div><div class="alert warn" style="margin-top:14px">Não há diaristas lançados nesta data${st.dia>todayISO()?' ainda':''}.</div>${isAdmin()?`<div class="plantao-box ${ehFimDeSemana(st.dia)?'':'util'}"><div class="pl-ic">👤</div><div class="pl-txt"><span>${ehFimDeSemana(st.dia)?'Assistente de plantão (fim de semana)':'Responsável pelos diaristas neste dia'} — pode definir antes de lançar</span><div class="flex gap8" style="margin-top:6px;flex-wrap:wrap"><input id="plNome" value="${esc(plantaoDe(st.dia))}" placeholder="Nome de quem vai cuidar dos diaristas" list="plLista" style="flex:1;min-width:200px"><datalist id="plLista">${responsaveis.map(([k,v])=>`<option value="${esc(v)}">`).join('')}</datalist><button type="button" class="btn sm" id="plSalvar">Salvar</button></div></div></div>`:(plantaoDe(st.dia)?`<div class="small muted">Responsável: <b>${esc(plantaoDe(st.dia))}</b></div>`:'')}`; if(isAdmin()) det.insertAdjacentHTML('beforeend', addBoxHtml()); ligarSalvarResp(det); ligarEdicao(det); return; }
+    const regsDia = ordenar(registrosDoDia(st.dia));
+    const regs = regsDia.filter(passaFiltroLinha);
+    const q = normalizeName(st.q);
+    const vis = q ? regs.filter(r=>normalizeName(r.nome).includes(q) || String(r.groot_id||'').toLowerCase().includes(st.q.toLowerCase())) : regs;
+    const r = resumo(st.dia); const dd = distDia(st.dia); const agg = agregarDia(st.dia);
+    const fds = ehFimDeSemana(st.dia); const resp = plantaoDe(st.dia);
+    det.innerHTML = `
+      <div class="kn-table-head"><div><h2 style="margin:0 0 6px">${fds?'Plantão de fim de semana':'Registro do dia'}</h2><div class="reg-titulo">${fmtDateBR(st.dia)} <span class="muted">· ${diaSemana(st.dia)}</span></div></div>
+        <div class="flex gap8" style="flex-wrap:wrap"><input id="regQ" class="searchbox" style="width:220px" placeholder="Buscar nome ou GROOT…" value="${esc(st.q)}"><button type="button" class="btn sm" id="regDiaCsv">⬇ Baixar dia (CSV)</button></div></div>
+      <div class="plantao-box ${fds?'':'util'}">
+        <div class="pl-ic">👤</div>
+        <div class="pl-txt"><span>${fds?'Assistente de plantão (fim de semana)':'Responsável pelos diaristas neste dia'}</span>
+          ${isAdmin()?`<div class="flex gap8" style="margin-top:6px;flex-wrap:wrap"><input id="plNome" value="${esc(resp)}" placeholder="Nome de quem cuidou dos diaristas no dia" list="plLista" style="flex:1;min-width:200px"><datalist id="plLista">${responsaveis.map(([k,v])=>`<option value="${esc(v)}">`).join('')}</datalist><button type="button" class="btn sm" id="plSalvar">Salvar</button></div>`
+          :`<b class="${resp?'':'muted'}">${resp?esc(resp):'Não informado'}</b>`}
+        </div></div>
+      <div class="reg-stats">
+        <div class="rs-grupo"><span class="rs-tit">Ponto do dia</span><div class="rs-itens">
+          <div><b>${r.t}</b><small>Diaristas</small></div>
+          <div><b style="color:var(--green)">${r.e}</b><small>Entradas</small></div>
+          <div><b style="color:var(--accent)">${r.s}</b><small>Saídas</small></div>
+          <div><b style="color:${r.t-r.e?'var(--amber)':'var(--muted)'}">${r.t-r.e}</b><small>Sem batida</small></div>
+        </div></div>
+        <div class="rs-grupo"><span class="rs-tit">Por empresa</span><div class="rs-itens">
+          <div><b style="color:var(--amber)">${dd?dd.meli||0:0}</b><small>MELI</small></div>
+          <div><b style="color:var(--green)">${dd?dd.kn||0:0}</b><small>KN</small></div>
+        </div></div>
+        <div class="rs-grupo"><span class="rs-tit">Por turno</span><div class="rs-itens">
+          <div><b>${agg.T1||0}</b><small>T1</small></div>
+          <div><b>${agg.T2||0}</b><small>T2</small></div>
+          <div><b>${agg.T3||0}</b><small>T3</small></div>
+        </div></div>
+      </div>
+      ${filtrosLinhaAtivos?`<div class="small muted" style="margin:-6px 0 10px">Mostrando ${regs.length} de ${regsDia.length} diaristas (filtro aplicado).</div>`:''}
+      ${isAdmin()?`<div class="reg-edit-bar"><span class="pill ativo">✎ Edição liberada</span><span class="small muted">Altere direto na tabela — cada mudança é salva no banco na hora.</span></div>`:''}
+      <div class="table-wrap"><table class="${isAdmin()?'reg-editavel':''}"><thead><tr><th>Nome</th><th class="reg-cpf">CPF</th><th>GROOT ID</th><th>Empresa</th><th>Turno</th><th>Previsto</th><th>Entrada</th><th>Saída</th><th>Situação</th><th>Observação</th>${isAdmin()?'<th></th>':''}</tr></thead>
+      <tbody>${vis.length?vis.map(x=>isAdmin()?linhaEditavel(x):`<tr><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td><td><span class="pill empresa ${String(x.empresa||'').toLowerCase().replace(/[^a-z0-9]/g,'')}">${esc(x.empresa||'-')}</span></td><td>${esc(x.turno||'-')}</td><td>${esc(x.horario_entrada||'-')}</td><td>${fmtBatida(x.qr_entrada_batida_em,x.data)}</td><td>${fmtBatida(x.qr_saida_batida_em,x.data)}</td><td>${situacaoHtml(x)}</td><td class="reg-obs">${esc(x.observacao||'')}</td></tr>`).join(''):`<tr><td colspan="${isAdmin()?11:10}" class="muted">Nenhum diarista encontrado.</td></tr>`}</tbody></table></div>
+      ${isAdmin()?addBoxHtml():''}`;
+    det.querySelector('#regQ').addEventListener('input', e=>{ st.q = e.target.value; const pos = e.target.selectionStart; detalhe(); const n = wrap.querySelector('#regQ'); n.focus(); n.setSelectionRange(pos,pos); });
+    det.querySelector('#regDiaCsv').onclick = ()=> exportCSV('registro_diaristas_'+st.dia+'.csv', header, regs.map(colunas));
+    ligarSalvarResp(det);
+    ligarEdicao(det);
+  }
+  detalhe();
+  const set = (k,v)=>{ st[k]=v; st.dia=''; st.diaVazio=false; navigate(); };
+  wrap.querySelector('#fData').onchange = e=>{
+    const d = e.target.value; if(!d) return;
+    Object.assign(st, {mes:d.slice(0,7), dia:d, q:'', tipo:'todos', empresa:'', turno:'', situacao:'', resp:'', diaVazio:!registrosDoDia(d).length});
+    navigate();
+  };
+  wrap.querySelectorAll('.reg-tipos .tab').forEach(t=>t.onclick = ()=>set('tipo', t.dataset.tipo));
+  wrap.querySelector('#fMes').onchange = e=>set('mes', e.target.value);
+  wrap.querySelector('#fEmp').onchange = e=>set('empresa', e.target.value);
+  wrap.querySelector('#fTur').onchange = e=>set('turno', e.target.value);
+  wrap.querySelector('#fSit').onchange = e=>set('situacao', e.target.value);
+  wrap.querySelector('#fResp').onchange = e=>set('resp', e.target.value);
+  wrap.querySelector('#fLimpar').onclick = ()=>{ Object.assign(st,{tipo:'todos',empresa:'',turno:'',situacao:'',resp:'',q:'',dia:'',diaVazio:false}); navigate(); };
+  wrap.querySelectorAll('.reg-dia').forEach(b=>b.onclick = ()=>{ st.dia = b.dataset.dia; st.diaVazio = false; wrap.querySelector('#fData').value = st.dia; wrap.querySelectorAll('.reg-dia').forEach(x=>x.classList.toggle('on', x===b)); detalhe(); });
+  wrap.querySelector('#regMesCsv').onclick = ()=>{
+    const linhas = [...diasFiltrados].reverse().flatMap(d=>ordenar(registrosDoDia(d)).filter(passaFiltroLinha).map(colunas));
+    const nome = st.tipo==='fds' ? 'plantoes_fds' : (st.tipo==='uteis' ? 'registros_dias_uteis' : 'registros_diaristas');
+    exportCSV(nome+'_'+(st.mes==='todos'?'todos':st.mes)+'.csv', header, linhas);
+  };
+}
+
+/* ===================== CONFIGURAÇÕES ===================== */
+function renderConfig(c){
+  setTitle('Configurações', '');
+  const panel = document.createElement('div');
+  panel.className='panel';
+  panel.innerHTML = `
+    <h2>Sobre o sistema</h2>
+    <p class="small muted">KN Diaristas Control — controle e gestão de diaristas da operação, com identificação automática por CPF/nome, histórico permanente e indicadores MELI × KN.</p>
+    <h3>Empresas cadastradas</h3>
+    <div>${empresasUsadas().map(e=>`<span class="chip">${e}</span>`).join('')}</div>
+    <h3>Dados armazenados</h3>
+    <p class="small muted">${DIARISTAS.length} diaristas cadastrados, ${HISTORICO.length} lançamentos no histórico, ${IMPORTS.length} importações realizadas. Os dados ficam salvos em um banco de dados compartilhado (Supabase) — qualquer pessoa que abrir este arquivo vê e edita as mesmas informações em tempo real.</p>
+    <div class="alert info mt16">🔗 Este arquivo se conecta ao projeto Supabase <strong>kuehne-diaristas</strong>. Para funcionar, ele precisa ser aberto por um navegador com acesso à internet.</div>
+    <div class="alert warn mt16">⚠️ Ainda não há login de usuários nem perfis de acesso (Administrador/Operador) — qualquer pessoa com o link do arquivo pode ler e editar os dados. Recomendado como próximo passo antes de uso mais amplo na operação.</div>
+  `;
+  c.appendChild(panel);
+
+  const panelZerar = document.createElement('div');
+  panelZerar.className='panel';
+  panelZerar.innerHTML = `
+    <h2>Zerar batidas de ponto (QR)</h2>
+    <p class="small muted">Use apenas para <strong>testar o app QR Diaristas</strong> ou em caso de emergência. Isso apaga os horários de Entrada e Saída batidos pelo QR de um dia — os diaristas continuam lançados no histórico normalmente, só as batidas de ponto são zeradas. Essa ação não pode ser desfeita.</p>
+    <div class="field" style="max-width:220px;"><label>Data</label><input type="date" id="zerarData" value="${todayISO()}"></div>
+    <div id="zerarInfo" class="small muted mt8"></div>
+    <button class="btn secondary" id="zerarBatidasBtn" style="margin-top:10px;border-color:var(--red);color:var(--red);">Zerar batidas desse dia</button>
+  `;
+  c.appendChild(panelZerar);
+
+  function atualizarInfoZerar(){
+    const dataISO = panelZerar.querySelector('#zerarData').value;
+    const regs = registrosDoDia(dataISO).filter(r=>r.qr_entrada_batida_em || r.qr_saida_batida_em);
+    panelZerar.querySelector('#zerarInfo').textContent = regs.length
+      ? `${regs.length} lançamento(s) com alguma batida registrada em ${fmtDateBR(dataISO)}.`
+      : `Nenhuma batida registrada em ${fmtDateBR(dataISO)}.`;
+  }
+  atualizarInfoZerar();
+  panelZerar.querySelector('#zerarData').addEventListener('change', atualizarInfoZerar);
+
+  panelZerar.querySelector('#zerarBatidasBtn').onclick = async ()=>{
+    const dataISO = panelZerar.querySelector('#zerarData').value;
+    const regs = registrosDoDia(dataISO).filter(r=>r.qr_entrada_batida_em || r.qr_saida_batida_em);
+    if(!regs.length){ toast('Não há batidas para zerar nessa data.','warn'); return; }
+    if(!confirm(`Zerar as batidas de entrada/saída de ${regs.length} lançamento(s) em ${fmtDateBR(dataISO)}? Essa ação não pode ser desfeita.`)) return;
+    const btn = panelZerar.querySelector('#zerarBatidasBtn');
+    btn.disabled = true; btn.textContent = 'Zerando...';
+    let ok=0, falhou=0;
+    for(const r of regs){
+      const upd = await sbUpdate('historico_diarias', r.id, {qr_entrada_batida_em:null, qr_saida_batida_em:null});
+      if(upd){ r.qr_entrada_batida_em=null; r.qr_saida_batida_em=null; ok++; } else { falhou++; }
+    }
+    btn.disabled = false; btn.textContent = 'Zerar batidas desse dia';
+    toast(falhou? `${ok} zerada(s), ${falhou} falharam.` : `${ok} batida(s) zerada(s) com sucesso.`, falhou? 'warn':'ok');
+    atualizarInfoZerar();
+    if(currentView==='dashboard') navigate();
+  };
+}
+
+/* ===================== BOOT ===================== */
+function isDarkTheme(){
+  return document.documentElement.getAttribute('data-tema')!=='claro';
+}
+function applyTheme(dark){
+  if(dark) document.documentElement.removeAttribute('data-tema');
+  else document.documentElement.setAttribute('data-tema','claro');
+  const btn = document.getElementById('themeToggle');
+  if(btn){ btn.textContent = dark ? '☀' : '☾'; btn.title = dark ? 'Versão clara' : 'Versão escura'; }
+  try{ localStorage.setItem('kn-diaristas-tema', dark ? 'escuro' : 'claro'); }catch(e){}
+}
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  applyTheme(!isDarkTheme());
+});
+(function initTheme(){
+  let saved = null;
+  try{ saved = localStorage.getItem('kn-diaristas-tema'); }catch(e){}
+  applyTheme(saved !== 'claro');
+})();
+document.getElementById('cfgBtn').addEventListener('click', ()=>{
+  currentView = currentView==='config' ? 'dashboard' : 'config'; fichaDiaristaId=null; navigate();
+});
+(function(){
+  const b = document.getElementById('knBrand'); let n=0, t=null;
+  b.addEventListener('click', ()=>{ n++; clearTimeout(t); t=setTimeout(()=>{ const q=n; n=0; if(q>=3) abrirAcesso(); else if(q===2 && isAdmin()) toggleExtras(); },450); });
+  document.addEventListener('keydown', e=>{ if(e.ctrlKey && e.shiftKey && (e.key==='K'||e.key==='k')){ e.preventDefault(); abrirAcesso(); } });
+})();
+function markSync(ok){
+  const el = document.getElementById('knLive'); if(!el) return;
+  const hh = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  el.className = 'live' + (ok ? '' : ' off');
+  el.textContent = ok ? '● ao vivo · '+hh : '● sem conexão';
+}
+
+function atualizarBotaoAcesso(){
+  const b = document.getElementById('acessoBtn'); if(!b) return;
+  b.classList.toggle('admin', isAdmin());
+  b.textContent = isAdmin() ? '🔓 Admin' : '🔒 Consulta';
+  b.title = isAdmin() ? 'Administração ativa — clique para sair ou trocar a senha' : 'Somente consulta — clique para entrar com a senha';
+}
+function travarCamposConsulta(){
+  if(isAdmin()) return;
+  document.querySelectorAll('.dist-input,.abs-input').forEach(i=>{ i.readOnly=true; i.disabled=true; i.tabIndex=-1; });
+}
+new MutationObserver(()=>travarCamposConsulta()).observe(document.getElementById('content'),{childList:true,subtree:true});
+
+async function abrirAcesso(){
+  const old = document.getElementById('acessoOverlay'); if(old) old.remove();
+  const bg = document.createElement('div'); bg.id='acessoOverlay'; bg.className='modal-bg';
+  let definida = true;
+  if(!isAdmin()){
+    const {data, error} = await sb.rpc('kn_dia_status');
+    if(error){ toast('Não foi possível falar com o banco: '+error.message,'err'); return; }
+    definida = !!(data && data.senha_definida);
+  }
+  const campo = (id, ph)=>`<div class="field"><label for="${id}">${ph}</label><input id="${id}" type="password" class="w100" autocomplete="off"></div>`;
+  let corpo;
+  if(isAdmin()){
+    corpo = `<h3>Administração</h3><p class="muted small" style="margin:-4px 0 16px">Você pode editar, importar e apagar. Ao fechar o navegador, volta para consulta.</p>
+      <div class="about-box" style="border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--wash);margin-bottom:16px">
+      <div class="label" style="font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600;margin-bottom:10px">Trocar senha</div>
+      ${campo('acAtual','Senha atual')}${campo('acNova','Nova senha')}${campo('acNova2','Repita a nova senha')}
+      <button class="btn secondary sm" id="acTrocar">Salvar nova senha</button></div>
+      <div class="flex between"><button class="btn danger" id="acSair">Sair da administração</button><button class="btn secondary" id="acFechar">Fechar</button></div>`;
+  } else if(!definida){
+    corpo = `<h3>Criar senha</h3><p class="muted small" style="margin:-4px 0 16px">Primeiro acesso: defina a senha de administração. Ela fica guardada criptografada no banco, não no código.</p>
+      ${campo('acNova','Nova senha (mín. 4 caracteres)')}${campo('acNova2','Repita a senha')}
+      <div class="flex between"><button class="btn secondary" id="acFechar">Cancelar</button><button class="btn" id="acCriar">Criar e entrar</button></div>`;
+  } else {
+    corpo = `<h3>Entrar para editar</h3><p class="muted small" style="margin:-4px 0 16px">Sem senha o sistema fica só para consulta e downloads.</p>
+      ${campo('acSenha','Senha')}<div id="acErro" class="small" style="color:var(--red);min-height:18px;margin:-6px 0 10px"></div>
+      <div class="flex between"><button class="btn secondary" id="acFechar">Cancelar</button><button class="btn" id="acEntrar">Entrar</button></div>`;
+  }
+  bg.innerHTML = `<div class="modal" style="width:420px">${corpo}</div>`;
+  document.body.appendChild(bg);
+  const $ = s=>bg.querySelector(s);
+  const fechar = ()=>bg.remove();
+  bg.addEventListener('click', e=>{ if(e.target===bg) fechar(); });
+  $('#acFechar').onclick = fechar;
+  const entrarCom = s=>{ ADMIN_SENHA = s; try{ sessionStorage.setItem('kn-dia-s', s); }catch(e){} fechar(); toast('Administração liberada.','ok'); boot(); };
+  if($('#acEntrar')){
+    const inp = $('#acSenha'); inp.focus();
+    const go = async ()=>{
+      const s = inp.value; if(!s) return;
+      $('#acEntrar').disabled = true;
+      const {data, error} = await sb.rpc('kn_dia_login', {p_senha:s});
+      $('#acEntrar').disabled = false;
+      if(error){ $('#acErro').textContent = error.message; return; }
+      if(data===true) entrarCom(s); else { $('#acErro').textContent = 'Senha incorreta.'; inp.select(); }
+    };
+    $('#acEntrar').onclick = go; inp.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+  }
+  if($('#acCriar')){
+    $('#acNova').focus();
+    $('#acCriar').onclick = async ()=>{
+      const n = $('#acNova').value, n2 = $('#acNova2').value;
+      if(n.length<4) return toast('A senha precisa ter pelo menos 4 caracteres.','warn');
+      if(n!==n2) return toast('As senhas não conferem.','warn');
+      const {data, error} = await sb.rpc('kn_dia_definir_senha', {p_atual:null, p_nova:n});
+      if(error) return toast(error.message,'err');
+      if(data===true) entrarCom(n); else toast('Já existe uma senha definida.','err');
+    };
+  }
+  if($('#acTrocar')){
+    $('#acTrocar').onclick = async ()=>{
+      const a = $('#acAtual').value, n = $('#acNova').value, n2 = $('#acNova2').value;
+      if(n.length<4) return toast('A nova senha precisa ter pelo menos 4 caracteres.','warn');
+      if(n!==n2) return toast('As senhas novas não conferem.','warn');
+      const {data, error} = await sb.rpc('kn_dia_definir_senha', {p_atual:a, p_nova:n});
+      if(error) return toast(error.message,'err');
+      if(data===true){ ADMIN_SENHA = n; try{ sessionStorage.setItem('kn-dia-s', n); }catch(e){} toast('Senha trocada.','ok'); fechar(); }
+      else toast('Senha atual incorreta.','err');
+    };
+  }
+  if($('#acSair')) $('#acSair').onclick = ()=>{ fechar(); sairAdmin(); };
+}
+document.getElementById('acessoBtn').addEventListener('click', abrirAcesso);
+
+async function boot(){
+  // Sempre começa a sessão sem dados em memória; os dados válidos vêm SOMENTE do Supabase novo.
+  if(ADMIN_SENHA){
+    try{ const {data} = await sb.rpc('kn_dia_login', {p_senha:ADMIN_SENHA}); if(data!==true){ ADMIN_SENHA=null; try{sessionStorage.removeItem('kn-dia-s');}catch(e){} } }catch(e){}
+  }
+  DIARISTAS = [];
+  HISTORICO = [];
+  IMPORTS = [];
+  DIST_DIARIA = [];
+  document.getElementById('content').innerHTML = '<div class="panel">Carregando dados do banco novo...</div>';
+  [DIARISTAS, HISTORICO, IMPORTS, DIST_DIARIA] = await Promise.all([sbSelect('diaristas'), sbSelect('historico_diarias'), sbSelect('importacoes'), sbSelect('distribuicao_diaria')]);
+  // Sincroniza cada lançamento do histórico com os dados MAIS ATUAIS do diarista
+  // (nome, GROOT ID, empresa, cargo). O histórico guarda uma cópia desses dados no
+  // momento do lançamento; se o cadastro for completado/corrigido depois (ex: GROOT ID
+  // que faltava), essa cópia antiga ficaria desatualizada — aqui ela é sempre atualizada
+  // com o que está no Banco de Diaristas, em todas as telas (Dashboard, Controle Diário,
+  // Histórico, Relatórios).
+  const diaristasPorId = {};
+  DIARISTAS.forEach(d=>{ diaristasPorId[d.id] = d; });
+  HISTORICO = HISTORICO.map(h=>{
+    const atual = h.diarista_id ? diaristasPorId[h.diarista_id] : null;
+    if(!atual) return h;
+    return {
+      ...h,
+      nome: atual.nome || h.nome,
+      groot_id: atual.groot_id || h.groot_id,
+      empresa: atual.empresa || h.empresa,
+      cargo: atual.cargo || h.cargo,
+      cpf: atual.cpf || h.cpf,
+    };
+  });
+  LOADED = true;
+  markSync(true);
+  // limpa registros de distribuição MELI/KN órfãos (sem nenhum lançamento correspondente no histórico)
+  const orfaos = DIST_DIARIA.filter(d=>registrosDoDia(d.data).length===0 && !d.plantao_responsavel);
+  for(const orfao of orfaos){
+    const ok = await sbDelete('distribuicao_diaria', orfao.id);
+    if(ok) DIST_DIARIA = DIST_DIARIA.filter(x=>x.id!==orfao.id);
+  }
+  navigate();
+}
+boot();
+
+// Atualização automática (a cada 15s) do Dashboard e do Controle Diário/Faltas: busca de novo
+// o histórico e as ABS lançadas — assim, quando alguém confirma entrada/saída pelo QR Diaristas
+// ou registra uma ABS (dessa ou de outra sessão), a informação aparece aqui sozinha, sem precisar
+// recarregar a página.
+setInterval(async ()=>{
+  if(!LOADED || (currentView!=='dashboard' && currentView!=='controle')) return;
+  try{
+    const freshHist = await sbSelect('historico_diarias');
+    const diaristasPorId = {};
+    DIARISTAS.forEach(d=>{ diaristasPorId[d.id] = d; });
+    HISTORICO = freshHist.map(h=>{
+      const atual = h.diarista_id ? diaristasPorId[h.diarista_id] : null;
+      if(!atual) return h;
+      return {
+        ...h,
+        nome: atual.nome || h.nome,
+        groot_id: atual.groot_id || h.groot_id,
+        empresa: atual.empresa || h.empresa,
+        cargo: atual.cargo || h.cargo,
+        cpf: atual.cpf || h.cpf,
+      };
+    });
+    markSync(true);
+    if(currentView==='dashboard' || currentView==='controle') navigate();
+  }catch(e){ markSync(false); /* tenta de novo no próximo ciclo */ }
+}, 15000);
+
+if(window.parent !== window){
+  window.addEventListener('message', (e)=>{
+    const d = e.data;
+    if(d && d.app==='painel-kn' && d.action==='navigate' && VIEWS.some(v=>v.id===d.target)){
+      currentView = d.target;
+      fichaDiaristaId = null;
+      navigate();
+    }
+  });
+}
+</script>
+
+<script>
+document.addEventListener('click', function(e){
+  const btn = e.target.closest && e.target.closest('#isisAuthorBtn');
+  if(!btn) return;
+  const old = document.getElementById('isisAboutOverlay');
+  if(old) old.remove();
+  const bg = document.createElement('div');
+  bg.id = 'isisAboutOverlay';
+  bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal about-isis">
+    <span class="modal-close" id="isisAboutClose">&times;</span>
+    <h3>Sobre o sistema</h3>
+    <div class="about-project">Central KN · Controle de Diaristas</div>
+    <div class="about-box">
+      <strong>Idealização e desenvolvimento</strong><br>
+      Isis Costa de Mello<br><br>
+      <strong>Ano de criação</strong><br>
+      2026<br><br>
+      <strong>Versão</strong><br>
+      v1.1 · Banco novo: kuehne-diaristas
+    </div>
+    <div class="copyright">© 2026 Isis Costa de Mello · Identificação de autoria do projeto</div>
+  </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#isisAboutClose').onclick=()=>bg.remove();
+  bg.addEventListener('click',ev=>{if(ev.target===bg) bg.remove();});
+});
+</script>
+
+</body>
+</html>
