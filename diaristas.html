@@ -2673,6 +2673,18 @@ async function abrirAcesso(){
   if($('#acSair')) $('#acSair').onclick = ()=>{ fechar(); sairAdmin(); };
 }
 document.getElementById('acessoBtn').addEventListener('click', abrirAcesso);
+function areaVazia(t){
+  if(!t || !t.closest) return false;
+  if(t.closest('input,select,textarea,button,a,label,table,svg,img,canvas,.modal-bg,.nav-item,.tab,.pill,.reg-dia,.qr-item,.toast,.kn-toast,[contenteditable],h1,h2,h3,p,li')) return false;
+  for(const n of t.childNodes){ if(n.nodeType===3 && n.textContent.trim()) return false; }
+  return true;
+}
+document.addEventListener('dblclick', e=>{
+  if(document.querySelector('.modal-bg')) return;
+  if(!areaVazia(e.target)) return;
+  try{ window.getSelection().removeAllRanges(); }catch(_){}
+  abrirAcesso();
+});
 
 async function boot(){
   // Sempre começa a sessão sem dados em memória; os dados válidos vêm SOMENTE do Supabase novo.

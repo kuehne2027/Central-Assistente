@@ -290,7 +290,8 @@ function voltarInicio(){
   desenharLista(); desenharHome();
 }
 $('#inicioBtn').onclick = voltarInicio;
-$('#recarregarBtn').onclick = ()=>{ if(!atual) return; $('#loading').classList.add('on'); const f=$('#frame'); f.src = 'about:blank'; setTimeout(()=>{ f.src = atual.url; },50); };
+function recarregarApp(){ if(!atual) return; $('#loading').classList.add('on'); const f=$('#frame'); f.src = 'about:blank'; setTimeout(()=>{ f.src = atual.url; },50); }
+$('#recarregarBtn').onclick = recarregarApp;
 $('#novaAbaBtn').onclick = ()=>{ if(atual) window.open(urlCompleta(atual.url),'_blank','noopener'); };
 
 /* ===================== MENU: ESCONDER / MOSTRAR ===================== */
@@ -316,8 +317,20 @@ $('#temaBtn').onclick = ()=>aplicarTema(document.documentElement.getAttribute('d
 /* ===================== ACESSO DISCRETO (3 cliques em KN ou Ctrl+Shift+K) ===================== */
 (function(){ let n=0,t=null; $('#knBrand').addEventListener('click',()=>{ n++; clearTimeout(t); t=setTimeout(()=>{ const q=n; n=0; if(q>=3) abrirAcesso(); },450); }); })();
 document.addEventListener('keydown', e=>{ if(e.ctrlKey && e.shiftKey && (e.key==='K'||e.key==='k')){ e.preventDefault(); abrirAcesso(); } });
+function areaVazia(t){
+  if(!t || !t.closest) return false;
+  if(t.closest('input,select,textarea,button,a,label,iframe,svg,img,.modal-bg,.app-item,.card,.toast,h1,h2,h3,p')) return false;
+  for(const n of t.childNodes){ if(n.nodeType===3 && n.textContent.trim()) return false; }
+  return true;
+}
+document.addEventListener('dblclick', e=>{
+  if(document.querySelector('.modal-bg')) return;
+  if(!areaVazia(e.target)) return;
+  try{ window.getSelection().removeAllRanges(); }catch(_){}
+  abrirAcesso();
+});
 $('#acessoBtn').onclick = abrirAcesso;
-function sair(silencioso){ SENHA=null; try{ sessionStorage.removeItem('kn-dia-s'); }catch(e){} document.body.classList.remove('admin'); if(!silencioso){ toast('Saiu da administração.'); carregar(); } }
+function sair(silencioso){ SENHA=null; try{ sessionStorage.removeItem('kn-dia-s'); }catch(e){} document.body.classList.remove('admin'); if(!silencioso){ toast('Saiu da administração.'); carregar().then(recarregarApp); } }
 function modal(html, larga){ const bg=document.createElement('div'); bg.className='modal-bg'; bg.innerHTML=`<div class="modal ${larga?'larga':''}">${html}</div>`; document.body.appendChild(bg); bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); }); return bg; }
 async function abrirAcesso(){
   if(isAdmin()){
@@ -330,7 +343,7 @@ async function abrirAcesso(){
     <div class="acoes"><button class="btn sec" id="mFechar">Cancelar</button><button class="btn" id="mEntrar">Entrar</button></div>`);
   const inp = bg.querySelector('#mSenha'); inp.focus();
   bg.querySelector('#mFechar').onclick=()=>bg.remove();
-  const go = async ()=>{ const s=inp.value; if(!s) return; try{ const ok = await rpc('kn_dia_login',{p_senha:s}); if(ok===true){ SENHA=s; try{ sessionStorage.setItem('kn-dia-s', s); }catch(e){} bg.remove(); toast('Administração liberada.','ok'); carregar(); } else { bg.querySelector('#mErro').textContent='Senha incorreta.'; inp.select(); } }catch(e){ bg.querySelector('#mErro').textContent=e.message; } };
+  const go = async ()=>{ const s=inp.value; if(!s) return; try{ const ok = await rpc('kn_dia_login',{p_senha:s}); if(ok===true){ SENHA=s; try{ sessionStorage.setItem('kn-dia-s', s); }catch(e){} bg.remove(); toast('Administração liberada.','ok'); await carregar(); recarregarApp(); } else { bg.querySelector('#mErro').textContent='Senha incorreta.'; inp.select(); } }catch(e){ bg.querySelector('#mErro').textContent=e.message; } };
   bg.querySelector('#mEntrar').onclick=go; inp.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
 }
 
