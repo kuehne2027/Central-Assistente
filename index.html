@@ -78,6 +78,26 @@ body:not(.admin) .acesso-btn{display:none}
 .app-txt{min-width:0;flex:1}
 .app-txt b{display:block;font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app-txt small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-num{width:30px;height:30px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;background:var(--wash);color:var(--muted);font-size:11px;font-weight:600;font-family:var(--f-mono)}
+.app-num.ic{font-family:inherit;font-size:14px}
+.app-item.on .app-num{background:var(--accent);color:var(--on-accent)}
+.app-item.pend{opacity:.55}
+.app-item.pend small{color:var(--amber)}
+/* seções do menu em destaque */
+.lista{gap:10px!important}
+.side-grupo{--gc:var(--accent);display:flex;flex-direction:column;gap:2px}
+.side-grupo.g-op{--gc:var(--accent)}.side-grupo.g-gp{--gc:var(--green)}.side-grupo.g-rel{--gc:var(--amber)}.side-grupo.g-out{--gc:var(--muted)}
+.side-grupo .side-tit{display:flex;align-items:center;gap:8px;margin:2px 0 4px;padding:7px 10px!important;border-radius:12px;color:var(--gc)!important;font-size:11px!important;font-weight:700!important;letter-spacing:.14em!important;background:color-mix(in srgb,var(--gc) 12%,transparent);box-shadow:inset 3px 0 0 var(--gc)}
+.side-grupo .gi{width:22px;height:22px;border-radius:8px;display:grid;place-items:center;font-size:12px;letter-spacing:0;background:color-mix(in srgb,var(--gc) 20%,transparent)}
+.side-grupo .gq{margin-left:auto;font-family:var(--f-mono);font-size:10.5px;letter-spacing:0;padding:1px 7px;border-radius:999px;background:color-mix(in srgb,var(--gc) 18%,transparent)}
+.home-grupo{display:flex;align-items:center;gap:8px;--gc:var(--accent);color:var(--gc)!important;font-weight:700!important;font-size:12px!important}
+.home-grupo.g-gp{--gc:var(--green)}.home-grupo.g-rel{--gc:var(--amber)}.home-grupo.g-out{--gc:var(--muted)}
+.home-grupo .gi{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;letter-spacing:0;background:color-mix(in srgb,var(--gc) 18%,transparent)}
+body.mini .side-grupo{padding:4px 2px}
+body.mini .side-grupo .side-tit{display:none}
+.home-grupo{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600;margin:22px 4px 10px}
+.card.pend{opacity:.6}.card.pend .abrir{color:var(--amber)}
+body.mini .app-item .app-num{width:34px;height:34px}
 .tag-rest{font-size:10px;color:var(--amber);margin-left:4px}
 .side-foot{padding:10px 12px 14px;border-top:1px solid var(--sep);display:flex;flex-direction:column;gap:8px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:var(--on-accent);border:1px solid transparent;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
@@ -189,7 +209,6 @@ body.mini #main{left:var(--side-mini)}
 
 <aside id="side" aria-label="Apps">
   <div class="side-top"><input id="busca" type="search" placeholder="Buscar app…" autocomplete="off"></div>
-  <div class="side-tit">Apps</div>
   <nav class="lista" id="lista"></nav>
   <div class="side-foot">
     <button type="button" class="btn sec sm so-admin" id="gerirBtn" title="Adicionar, editar e organizar os apps">✎ <span>Gerenciar apps</span></button>
@@ -232,7 +251,7 @@ async function carregar(){
       if(r && r.erro){ sair(true); return carregar(); }
       APPS = r || [];
     } else {
-      APPS = await rest('central_apps?select=id,nome,url,icone,descricao,ordem,restrito&order=ordem.asc,nome.asc');
+      APPS = await rest('central_apps?select=id,nome,url,icone,descricao,ordem,restrito,grupo&order=ordem.asc,nome.asc');
     }
     marcarConexao(true);
   }catch(e){ console.error(e); marcarConexao(false); }
@@ -243,14 +262,29 @@ async function carregar(){
 }
 
 /* ===================== MENU LATERAL ===================== */
+const GRUPOS = ['Operação','Gestão de pessoas','Relatórios','Outros'];
+const GRUPO_ICONE = {'Operação':'⚙','Gestão de pessoas':'👥','Relatórios':'📊','Outros':'▦'};
+const grupoSlug = g=>({'Operação':'op','Gestão de pessoas':'gp','Relatórios':'rel'})[g]||'out';
+function porGrupo(lista){
+  const g = {}; lista.forEach(a=>{ const k = GRUPOS.includes(a.grupo)?a.grupo:'Outros'; (g[k]=g[k]||[]).push(a); });
+  return GRUPOS.filter(k=>g[k]&&g[k].length).map(k=>[k,g[k]]);
+}
+function clicarApp(app){
+  if(!app) return;
+  if(!app.url){ if(isAdmin()){ abrirGerir(app.id); } else toast('Este app ainda não tem link cadastrado.','warn'); return; }
+  abrir(app); if(window.innerWidth<=860) document.body.classList.remove('side-aberta');
+}
 function desenharLista(){
   const q = ($('#busca').value||'').toLowerCase().trim();
-  const vis = APPS.filter(a=>!q || (a.nome+' '+(a.descricao||'')).toLowerCase().includes(q));
-  $('#lista').innerHTML = vis.length ? vis.map(a=>`<button type="button" class="app-item ${atual&&atual.id===a.id?'on':''}" data-id="${a.id}" title="${esc(a.nome)}">
-      <span class="app-ic">${esc(a.icone||'▦')}</span>
-      <span class="app-txt"><b>${esc(a.nome)}${a.restrito?'<span class="tag-rest">🔒</span>':''}</b>${a.descricao?`<small>${esc(a.descricao)}</small>`:''}</span></button>`).join('')
-    : `<div class="small" style="color:var(--muted);font-size:12px;padding:8px 8px">${APPS.length?'Nenhum app encontrado.':'Nenhum app ainda.'}</div>`;
-  $('#lista').querySelectorAll('.app-item').forEach(b=>b.onclick=()=>{ abrir(APPS.find(a=>a.id===b.dataset.id)); if(window.innerWidth<=860) document.body.classList.remove('side-aberta'); });
+  const vis = APPS.filter(a=>!q || (a.nome+' '+(a.descricao||'')+' '+(a.grupo||'')).toLowerCase().includes(q));
+  const item = (a,i)=>`<button type="button" class="app-item ${atual&&atual.id===a.id?'on':''} ${a.url?'':'pend'}" data-id="${a.id}" title="${esc(a.nome)}${a.url?'':' (link pendente)'}">
+      <span class="app-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="app-txt"><b>${esc(a.nome)}${a.restrito?'<span class="tag-rest">🔒</span>':''}</b>${a.url?'':'<small>link pendente</small>'}</span></button>`;
+  $('#lista').innerHTML = `<button type="button" class="app-item visao ${atual?'':'on'}" id="visaoGeral" title="Visão geral"><span class="app-num ic">⌂</span><span class="app-txt"><b>Visão geral</b></span></button>`
+    + (vis.length ? porGrupo(vis).map(([g,l])=>`<div class="side-grupo g-${grupoSlug(g)}"><div class="side-tit"><span class="gi">${GRUPO_ICONE[g]||'▦'}</span>${esc(g)}<span class="gq">${l.length}</span></div>${l.map(item).join('')}</div>`).join('')
+    : `<div class="small" style="color:var(--muted);font-size:12px;padding:8px 8px">${APPS.length?'Nenhum app encontrado.':'Nenhum app ainda.'}</div>`);
+  $('#visaoGeral').onclick = ()=>{ voltarInicio(); if(window.innerWidth<=860) document.body.classList.remove('side-aberta'); };
+  $('#lista').querySelectorAll('.app-item[data-id]').forEach(b=>b.onclick=()=>clicarApp(APPS.find(a=>a.id===b.dataset.id)));
 }
 $('#busca').addEventListener('input', desenharLista);
 
@@ -259,9 +293,9 @@ function desenharHome(){
   const hora = new Date().getHours();
   const saud = hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
   $('#home').innerHTML = `<div class="home-head"><div class="eyebrow">Central KN · ${saud}</div><h1>Central do Assistente</h1><p>Todos os apps da operação num só lugar. Escolha no menu ao lado ou nos cartões abaixo.</p></div>
-    ${APPS.length ? `<div class="cards">${APPS.map(a=>`<button type="button" class="card" data-id="${a.id}"><span class="app-ic">${esc(a.icone||'▦')}</span><div><b>${esc(a.nome)}${a.restrito?' <span class="tag-rest">🔒</span>':''}</b>${a.descricao?`<br><small>${esc(a.descricao)}</small>`:''}</div><span class="abrir">Abrir →</span></button>`).join('')}</div>`
+    ${APPS.length ? porGrupo(APPS).map(([g,l])=>`<div class="home-grupo g-${grupoSlug(g)}"><span class="gi">${GRUPO_ICONE[g]||'▦'}</span>${esc(g)}</div><div class="cards">${l.map(a=>`<button type="button" class="card ${a.url?'':'pend'}" data-id="${a.id}"><span class="app-ic">${esc(a.icone||'▦')}</span><div><b>${esc(a.nome)}${a.restrito?' <span class="tag-rest">🔒</span>':''}</b>${a.descricao?`<br><small>${esc(a.descricao)}</small>`:''}</div><span class="abrir">${a.url?'Abrir →':'Link pendente'}</span></button>`).join('')}</div>`).join('')
       : `<div class="vazio"><b>Nenhum app cadastrado ainda</b>${isAdmin()?'Clique em “Gerenciar apps” no menu para colocar o primeiro link.':'Os apps aparecem aqui assim que forem cadastrados.'}</div>`}`;
-  $('#home').querySelectorAll('.card').forEach(b=>b.onclick=()=>abrir(APPS.find(a=>a.id===b.dataset.id)));
+  $('#home').querySelectorAll('.card').forEach(b=>b.onclick=()=>clicarApp(APPS.find(a=>a.id===b.dataset.id)));
 }
 
 /* ===================== ABRIR APP (por link, sem pesar a Central) ===================== */
@@ -353,37 +387,39 @@ async function gravar(acao, id, dados){
   try{ const r = await rpc('central_apps_gravar', {p_senha:SENHA, p_acao:acao, p_id:id||null, p_dados:dados||null}); if(r && r.erro){ toast(r.erro,'err'); sair(true); carregar(); return null; } return r||{}; }
   catch(e){ toast('Erro ao salvar: '+e.message,'err'); return null; }
 }
-function abrirGerir(){
+function abrirGerir(editarId){
   if(!isAdmin()) return;
   const bg = modal(`<h3>Gerenciar apps</h3><p class="sub">Cole o link de cada app. A Central só abre o endereço, então continua leve.</p>
     <div class="gerir-lista" id="gLista"></div>
     <div class="field" style="margin-top:6px"><label>${'Adicionar novo app'}</label></div>
     <div class="row2"><div class="field"><label for="gIc">Ícone</label><input id="gIc" maxlength="4" placeholder="📊"></div><div class="field"><label for="gNome">Nome</label><input id="gNome" placeholder="Ex.: Controle de Diaristas"></div></div>
-    <div class="field"><label for="gUrl">Link</label><input id="gUrl" placeholder="https://kuehne2027.github.io/…"></div>
+    <div class="row2" style="grid-template-columns:180px 1fr"><div class="field"><label for="gGrupo">Seção</label><select id="gGrupo" style="width:100%;font:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:16px;background:var(--wash);color:var(--ink)">${GRUPOS.map(x=>`<option>${x}</option>`).join('')}</select></div>
+    <div class="field"><label for="gUrl">Link</label><input id="gUrl" placeholder="https://kuehne2027.github.io/… (pode deixar vazio)"></div></div>
     <div class="field"><label for="gDesc">Descrição (opcional)</label><input id="gDesc" placeholder="Uma linha sobre o app"></div>
     <label class="check"><input type="checkbox" id="gRest"> Só aparece para quem entrar com a senha</label>
     <input type="hidden" id="gId">
     <div class="acoes"><button class="btn sec" id="gFechar">Fechar</button><div style="display:flex;gap:8px"><button class="btn sec" id="gCancelarEd" hidden>Cancelar edição</button><button class="btn" id="gSalvar">+ Adicionar</button></div></div>`, true);
   const g = s=>bg.querySelector(s);
-  const limpar = ()=>{ ['#gIc','#gNome','#gUrl','#gDesc','#gId'].forEach(s=>g(s).value=''); g('#gRest').checked=false; g('#gSalvar').textContent='+ Adicionar'; g('#gCancelarEd').hidden=true; };
+  const limpar = ()=>{ ['#gIc','#gNome','#gUrl','#gDesc','#gId'].forEach(s=>g(s).value=''); g('#gRest').checked=false; g('#gGrupo').value='Gestão de pessoas'; g('#gSalvar').textContent='+ Adicionar'; g('#gCancelarEd').hidden=true; };
   function lista(){
     g('#gLista').innerHTML = APPS.length ? APPS.map((a,i)=>`<div class="gerir-item"><span class="app-ic">${esc(a.icone||'▦')}</span>
-      <span class="app-txt"><b>${esc(a.nome)}${a.restrito?'<span class="tag-rest">🔒 só com senha</span>':''}</b><small>${esc(a.url)}</small></span>
+      <span class="app-txt"><b>${esc(a.nome)}${a.restrito?'<span class="tag-rest">🔒 só com senha</span>':''}</b><small>${esc(a.grupo||'Outros')} · ${a.url?esc(a.url):'<span style="color:var(--amber)">link pendente</span>'}</small></span>
       <span class="mini-acoes"><button title="Subir" data-up="${i}" ${i===0?'disabled':''}>↑</button><button title="Descer" data-down="${i}" ${i===APPS.length-1?'disabled':''}>↓</button><button title="Editar" data-ed="${a.id}">✎</button><button class="del" title="Remover" data-del="${a.id}">✕</button></span></div>`).join('')
       : '<div class="vazio" style="padding:20px">Nenhum app ainda. Adicione o primeiro abaixo.</div>';
-    g('#gLista').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{ const a=APPS.find(x=>x.id===b.dataset.ed); g('#gId').value=a.id; g('#gIc').value=a.icone||''; g('#gNome').value=a.nome; g('#gUrl').value=a.url; g('#gDesc').value=a.descricao||''; g('#gRest').checked=!!a.restrito; g('#gSalvar').textContent='Salvar alterações'; g('#gCancelarEd').hidden=false; g('#gNome').focus(); });
+    g('#gLista').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{ const a=APPS.find(x=>x.id===b.dataset.ed); g('#gId').value=a.id; g('#gIc').value=a.icone||''; g('#gNome').value=a.nome; g('#gUrl').value=a.url||''; g('#gGrupo').value=GRUPOS.includes(a.grupo)?a.grupo:'Outros'; g('#gDesc').value=a.descricao||''; g('#gRest').checked=!!a.restrito; g('#gSalvar').textContent='Salvar alterações'; g('#gCancelarEd').hidden=false; g('#gNome').focus(); });
     g('#gLista').querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{ const a=APPS.find(x=>x.id===b.dataset.del); if(!confirm('Remover "'+a.nome+'" da Central? (o app em si não é apagado)')) return; if(await gravar('delete',a.id)){ toast('App removido.','ok'); if(atual&&atual.id===a.id) voltarInicio(); await carregar(); lista(); } });
     const mover = async (i,j)=>{ const a=APPS[i], b=APPS[j]; const ordA = j, ordB = i; await gravar('update',a.id,{ordem:ordA}); await gravar('update',b.id,{ordem:ordB}); APPS.forEach((x,k)=>{ if(x!==a&&x!==b&&x.ordem!==k) gravar('update',x.id,{ordem:k}); }); await carregar(); lista(); };
     g('#gLista').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>mover(+b.dataset.up, +b.dataset.up-1));
     g('#gLista').querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>mover(+b.dataset.down, +b.dataset.down+1));
   }
   lista();
+  if(editarId){ const b=g(`[data-ed="${editarId}"]`); if(b) b.click(); setTimeout(()=>g('#gUrl').focus(),50); }
   g('#gFechar').onclick=()=>bg.remove();
   g('#gCancelarEd').onclick=limpar;
   g('#gSalvar').onclick=async()=>{
-    const dados = {icone:g('#gIc').value.trim()||null, nome:g('#gNome').value.trim(), url:g('#gUrl').value.trim(), descricao:g('#gDesc').value.trim()||null, restrito:g('#gRest').checked};
+    const dados = {icone:g('#gIc').value.trim()||null, nome:g('#gNome').value.trim(), url:g('#gUrl').value.trim(), descricao:g('#gDesc').value.trim()||null, restrito:g('#gRest').checked, grupo:g('#gGrupo').value};
     if(!dados.nome) return toast('Coloque o nome do app.','warn');
-    if(!urlValida(dados.url)) return toast('Coloque um link válido (https://…) ou o nome de um arquivo do repositório (ex.: diaristas.html).','warn');
+    if(dados.url && !urlValida(dados.url)) return toast('Coloque um link válido (https://…) ou o nome de um arquivo do repositório (ex.: diaristas.html).','warn');
     const id = g('#gId').value;
     if(!id) dados.ordem = APPS.length;
     const r = await gravar(id?'update':'insert', id||null, dados);
