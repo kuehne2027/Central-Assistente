@@ -19,7 +19,7 @@
   --bg:#07090d; --ink:#eef2f5; --muted:#8c97a3; --line:rgba(255,255,255,.09); --glass:rgba(22,27,34,.55);
   --accent:#4cc3ff; --amber:#ffb547; --red:#ff6b6e; --green:#3ddc97;
   --wash:rgba(255,255,255,.045); --sep:rgba(255,255,255,.06); --line2:rgba(255,255,255,.25); --ph:rgba(255,255,255,.22);
-  --navbg:rgba(7,9,13,.72); --sidebg:rgba(10,13,18,.82); --overlay:rgba(3,5,8,.72); --modal:rgba(14,18,24,.97); --on-accent:#04121b; --pill:#eef2f5; --on-pill:#000;
+  --navbg:rgba(7,9,13,.72); --sidebg:#07090D; --overlay:rgba(3,5,8,.72); --modal:rgba(14,18,24,.97); --on-accent:#04121b; --pill:#eef2f5; --on-pill:#000;
   --grain:rgba(255,255,255,.035); --shadow:none; --a1:.10; --a2:.16; --a3:.3;
   --f-display:'Unbounded',system-ui,sans-serif; --f-sans:'Onest',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
   --side:252px; --side-mini:68px; --nav:56px;
@@ -29,7 +29,7 @@ html[data-tema="claro"]{
   --bg:#f4f8fc; --ink:#082b4a; --muted:#647e95; --line:#d7e5f1; --glass:#ffffff;
   --accent:#0b7fe8; --amber:#b45f06; --red:#d33b40; --green:#128a58;
   --wash:rgba(8,43,74,.04); --sep:rgba(8,43,74,.08); --line2:rgba(8,43,74,.28); --ph:rgba(8,43,74,.35);
-  --navbg:rgba(255,255,255,.88); --sidebg:rgba(255,255,255,.9); --overlay:rgba(8,43,74,.35); --modal:#ffffff; --on-accent:#ffffff; --pill:#082b4a; --on-pill:#ffffff;
+  --navbg:rgba(255,255,255,.88); --sidebg:#ffffff; --overlay:rgba(8,43,74,.35); --modal:#ffffff; --on-accent:#ffffff; --pill:#082b4a; --on-pill:#ffffff;
   --grain:rgba(8,43,74,.05); --shadow:0 10px 32px rgba(28,73,111,.07); --a1:.07; --a2:.07; --a3:.08;
   color-scheme:light;
 }
@@ -64,7 +64,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 body:not(.admin) .acesso-btn{display:none}
 
 /* ===== Menu lateral ===== */
-#side{position:fixed;top:var(--nav);left:0;bottom:0;width:var(--side);z-index:40;background:var(--sidebg);border-right:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;flex-direction:column;transition:width .22s ease,transform .22s ease}
+#side{position:fixed;top:var(--nav);left:0;bottom:0;width:var(--side);z-index:40;background:var(--sidebg);border-right:1px solid var(--line);display:flex;flex-direction:column;transition:width .22s ease,transform .22s ease}
 .side-top{padding:14px 12px 8px}
 .side-top input{width:100%;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--wash);color:var(--ink);font:inherit;font-size:13px}
 .side-top input::placeholder{color:var(--ph)}
