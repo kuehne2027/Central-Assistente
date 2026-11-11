@@ -319,7 +319,10 @@ function abrir(app){
   $('#loading').classList.add('on');
   f.onload = ()=>$('#loading').classList.remove('on');
   setTimeout(()=>$('#loading').classList.remove('on'), 8000);
-  if(f.getAttribute('src')!==app.url) f.src = app.url;
+  // sempre abre a versão mais nova do app (evita cache antigo do GitHub Pages)
+  let src = app.url;
+  try{ const u = new URL(app.url, location.href); u.searchParams.set('v', Date.now()); src = u.href; }catch(e){}
+  if(f.dataset.app !== app.id){ f.dataset.app = app.id; f.src = src; }
   else $('#loading').classList.remove('on');
   $('#atualBox').hidden = false; $('#atualNome').textContent = app.nome;
   $('#temaBtn').style.marginLeft = '';
@@ -333,14 +336,14 @@ function abrir(app){
 }
 function voltarInicio(){
   atual = null; history.replaceState(null,'',location.pathname);
-  const f=$('#frame'); f.hidden=true; f.removeAttribute('src');
+  const f=$('#frame'); f.hidden=true; f.removeAttribute('src'); delete f.dataset.app;
   $('#home').hidden=false; $('#atualBox').hidden=true; $('#temaBtn').style.marginLeft='auto';
   document.title='Central do Assistente · KN';
   document.body.classList.remove('foco','peek');
   desenharLista(); desenharHome();
 }
 $('#inicioBtn').onclick = voltarInicio;
-function recarregarApp(){ if(!atual) return; $('#loading').classList.add('on'); const f=$('#frame'); f.src = 'about:blank'; setTimeout(()=>{ f.src = atual.url; },50); }
+function recarregarApp(){ if(!atual) return; $('#loading').classList.add('on'); const f=$('#frame'); f.src = 'about:blank'; setTimeout(()=>{ try{ const u=new URL(atual.url, location.href); u.searchParams.set('v', Date.now()); f.src=u.href; }catch(e){ f.src = atual.url; } },50); }
 $('#recarregarBtn').onclick = recarregarApp;
 $('#novaAbaBtn').onclick = ()=>{ if(atual) window.open(urlCompleta(atual.url),'_blank','noopener'); };
 
