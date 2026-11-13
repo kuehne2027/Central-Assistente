@@ -388,6 +388,13 @@ table.reg-editavel .reg-obs-in{width:130px}
 table.reg-editavel .salvo{border-color:var(--green)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 25%,transparent)}
 .reg-obs{white-space:normal;max-width:220px;color:var(--muted)}
 .reg-del{width:30px;height:30px;border-radius:50%;border:1px solid color-mix(in srgb,var(--red) 35%,transparent);background:transparent;color:var(--red);cursor:pointer;font-size:12px}
+.reg-chk{width:18px;height:18px;min-height:0!important;padding:0!important;accent-color:var(--red);cursor:pointer;vertical-align:middle}
+table.reg-editavel td.reg-chk-td,table.reg-editavel th.reg-chk-td{width:34px;text-align:center;padding-left:4px!important;padding-right:4px!important}
+tr.reg-marcado td{background:color-mix(in srgb,var(--red) 9%,transparent)}
+.reg-del-lote{display:none;align-items:center;gap:10px;margin-left:auto;padding:6px 8px 6px 14px;border-radius:14px;background:color-mix(in srgb,var(--red) 10%,transparent);border:1px solid color-mix(in srgb,var(--red) 35%,transparent)}
+.reg-del-lote.on{display:flex}
+.reg-del-lote b{color:var(--red)}
+.reg-del-lote .btn.perigo{background:var(--red);border-color:var(--red);color:#fff}
 .reg-del:hover{background:color-mix(in srgb,var(--red) 12%,transparent)}
 .reg-add{margin-top:16px;padding:14px 16px;border-radius:18px;border:1px dashed var(--line2);background:var(--wash)}
 .reg-add-campos{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -2375,7 +2382,7 @@ function renderRegistros(c){
   const empresasOpc = Array.from(new Set(['TSI','MELI','KN', ...empresas]));
   function linhaEditavel(x){
     const sel = (campo, ops, v)=>`<select data-campo="${campo}" data-id="${x.id}">${ops.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}${v&&!ops.includes(v)?`<option selected>${esc(v)}</option>`:''}</select>`;
-    return `<tr data-row="${x.id}"><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td>
+    return `<tr data-row="${x.id}"><td class="reg-chk-td"><input type="checkbox" class="reg-chk" data-sel="${x.id}" title="Marcar para excluir"></td><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td>
       <td>${sel('empresa', empresasOpc, x.empresa||'')}</td>
       <td>${sel('turno', ['T1','T2','T3'], x.turno||'')}</td>
       <td><input type="time" data-campo="horario_entrada" data-id="${x.id}" value="${esc(String(x.horario_entrada||'').slice(0,5))}"></td>
@@ -2425,6 +2432,34 @@ function renderRegistros(c){
       const ok = await sbDelete('historico_diarias', reg.id);
       if(ok){ HISTORICO = HISTORICO.filter(h=>h.id!==reg.id); toast(reg.nome+' removido do dia.','ok'); navigate(); }
     });
+    const chks = ()=>[...det.querySelectorAll('input[data-sel]')];
+    const atualizarSel = ()=>{
+      const m = chks().filter(c=>c.checked);
+      chks().forEach(c=>c.closest('tr').classList.toggle('reg-marcado', c.checked));
+      const bar = det.querySelector('#regDelLote'); if(bar) bar.classList.toggle('on', m.length>0);
+      const q = det.querySelector('#regSelQtd'); if(q) q.textContent = m.length;
+      const todos = det.querySelector('#regSelTodos'); if(todos){ todos.checked = m.length>0 && m.length===chks().length; todos.indeterminate = m.length>0 && m.length<chks().length; }
+    };
+    chks().forEach(c=>c.addEventListener('change', atualizarSel));
+    const selTodos = det.querySelector('#regSelTodos');
+    if(selTodos) selTodos.addEventListener('change', ()=>{ chks().forEach(c=>c.checked = selTodos.checked); atualizarSel(); });
+    const selLimpar = det.querySelector('#regSelLimpar');
+    if(selLimpar) selLimpar.onclick = ()=>{ chks().forEach(c=>c.checked=false); atualizarSel(); };
+    const selExcluir = det.querySelector('#regSelExcluir');
+    if(selExcluir) selExcluir.onclick = async ()=>{
+      const ids = chks().filter(c=>c.checked).map(c=>c.dataset.sel);
+      const regsSel = HISTORICO.filter(h=>ids.includes(String(h.id)));
+      if(!regsSel.length) return;
+      const lista = regsSel.slice(0,15).map(r=>'• '+r.nome).join('\n') + (regsSel.length>15?'\n… e mais '+(regsSel.length-15):'');
+      if(!confirm('Excluir '+regsSel.length+' diarista(s) do dia '+fmtDateBR(regsSel[0].data)+'?\n\n'+lista+'\n\nEssa ação não pode ser desfeita.')) return;
+      selExcluir.disabled = true; selExcluir.textContent = 'Excluindo…';
+      let ok = 0, falha = 0;
+      for(const r of regsSel){
+        if(await sbDelete('historico_diarias', r.id)){ ok++; HISTORICO = HISTORICO.filter(h=>h.id!==r.id); } else falha++;
+      }
+      toast(ok+' diarista(s) excluído(s)'+(falha?' · '+falha+' não foram excluídos':'')+'.', falha?'warn':'ok');
+      navigate();
+    };
     const addBtn = det.querySelector('#addBtn');
     if(addBtn) addBtn.onclick = async ()=>{
       const txt = det.querySelector('#addBusca').value.trim();
@@ -2489,9 +2524,9 @@ function renderRegistros(c){
         </div></div>
       </div>
       ${filtrosLinhaAtivos?`<div class="small muted" style="margin:-6px 0 10px">Mostrando ${regs.length} de ${regsDia.length} diaristas (filtro aplicado).</div>`:''}
-      ${isAdmin()?`<div class="reg-edit-bar"><span class="pill ativo">✎ Edição liberada</span><span class="small muted">Altere direto na tabela — cada mudança é salva no banco na hora.</span></div>`:''}
-      <div class="table-wrap"><table class="${isAdmin()?'reg-editavel':''}"><thead><tr><th>Nome</th><th class="reg-cpf">CPF</th><th>GROOT ID</th><th>Empresa</th><th>Turno</th><th>Previsto</th><th>Entrada</th><th>Saída</th><th>Situação</th><th>Observação</th>${isAdmin()?'<th></th>':''}</tr></thead>
-      <tbody>${vis.length?vis.map(x=>isAdmin()?linhaEditavel(x):`<tr><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td><td><span class="pill empresa ${String(x.empresa||'').toLowerCase().replace(/[^a-z0-9]/g,'')}">${esc(x.empresa||'-')}</span></td><td>${esc(x.turno||'-')}</td><td>${esc(x.horario_entrada||'-')}</td><td>${fmtBatida(x.qr_entrada_batida_em,x.data)}</td><td>${fmtBatida(x.qr_saida_batida_em,x.data)}</td><td>${situacaoHtml(x)}</td><td class="reg-obs">${esc(x.observacao||'')}</td></tr>`).join(''):`<tr><td colspan="${isAdmin()?11:10}" class="muted">Nenhum diarista encontrado.</td></tr>`}</tbody></table></div>
+      ${isAdmin()?`<div class="reg-edit-bar"><span class="pill ativo">✎ Edição liberada</span><span class="small muted">Altere direto na tabela — cada mudança é salva no banco na hora. Marque a caixinha para excluir vários de uma vez.</span><div class="reg-del-lote" id="regDelLote"><span class="small"><b id="regSelQtd">0</b> marcado(s)</span><button type="button" class="btn secondary sm" id="regSelLimpar">Desmarcar</button><button type="button" class="btn sm perigo" id="regSelExcluir">🗑 Excluir marcados</button></div></div>`:''}
+      <div class="table-wrap"><table class="${isAdmin()?'reg-editavel':''}"><thead><tr>${isAdmin()?'<th class="reg-chk-td"><input type="checkbox" class="reg-chk" id="regSelTodos" title="Marcar todos"></th>':''}<th>Nome</th><th class="reg-cpf">CPF</th><th>GROOT ID</th><th>Empresa</th><th>Turno</th><th>Previsto</th><th>Entrada</th><th>Saída</th><th>Situação</th><th>Observação</th>${isAdmin()?'<th></th>':''}</tr></thead>
+      <tbody>${vis.length?vis.map(x=>isAdmin()?linhaEditavel(x):`<tr><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td><td><span class="pill empresa ${String(x.empresa||'').toLowerCase().replace(/[^a-z0-9]/g,'')}">${esc(x.empresa||'-')}</span></td><td>${esc(x.turno||'-')}</td><td>${esc(x.horario_entrada||'-')}</td><td>${fmtBatida(x.qr_entrada_batida_em,x.data)}</td><td>${fmtBatida(x.qr_saida_batida_em,x.data)}</td><td>${situacaoHtml(x)}</td><td class="reg-obs">${esc(x.observacao||'')}</td></tr>`).join(''):`<tr><td colspan="${isAdmin()?12:10}" class="muted">Nenhum diarista encontrado.</td></tr>`}</tbody></table></div>
       ${isAdmin()?addBoxHtml():''}`;
     det.querySelector('#regQ').addEventListener('input', e=>{ st.q = e.target.value; const pos = e.target.selectionStart; detalhe(); const n = wrap.querySelector('#regQ'); n.focus(); n.setSelectionRange(pos,pos); });
     det.querySelector('#regDiaCsv').onclick = ()=> exportCSV('registro_diaristas_'+st.dia+'.csv', header, regs.map(colunas));
