@@ -393,7 +393,18 @@ table.reg-editavel .salvo{border-color:var(--green)!important;box-shadow:0 0 0 2
 .reg-add-campos{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 @media (min-width:1360px){#main{max-width:1440px}}
 @media (max-width:1100px){.reg-filtros{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:980px){.reg-grid{grid-template-columns:1fr}.reg-dias{position:static}.reg-lista{max-height:none;flex-direction:row;overflow-x:auto}.reg-dia{min-width:230px}.reg-stats{grid-template-columns:1fr}}
+.reg-toggle{width:30px;height:30px;border-radius:10px;border:1px solid var(--line2);background:var(--wash);color:var(--ink);cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center;flex-shrink:0;transition:background-color .15s,border-color .15s}
+.reg-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.reg-dias-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.reg-grid{transition:grid-template-columns .2s ease}
+.reg-grid.recolhido{grid-template-columns:76px minmax(0,1fr)}
+.reg-grid.recolhido .reg-dias{padding:12px 8px}
+.reg-grid.recolhido .reg-dias-head{flex-direction:column}
+.reg-grid.recolhido .reg-dias-head h2,.reg-grid.recolhido .reg-dias-head .small,.reg-grid.recolhido #regMesCsv,.reg-grid.recolhido .rd-num,.reg-grid.recolhido .reg-dia .pill,.reg-grid.recolhido .rd-resp,.reg-grid.recolhido .rd-data small{display:none}
+.reg-grid.recolhido .reg-lista{margin:0;padding:0;max-height:70vh}
+.reg-grid.recolhido .reg-dia{grid-template-columns:1fr;padding:8px 4px;text-align:center;border-radius:12px}
+.reg-grid.recolhido .rd-data b{font-size:14px}
+@media (max-width:980px){.reg-grid,.reg-grid.recolhido{grid-template-columns:1fr}.reg-toggle{display:none}.reg-dias{position:static}.reg-lista{max-height:none;flex-direction:row;overflow-x:auto}.reg-dia{min-width:230px}.reg-stats{grid-template-columns:1fr}}
 @media (max-width:640px){.reg-filtros{grid-template-columns:1fr 1fr}}
 
 body.consulta #acessoBtn{display:none!important}
@@ -658,6 +669,8 @@ const VIEWS = [
 ];
 let KN_PRIVATE = false;
 try{ KN_PRIVATE = localStorage.getItem('kn-diaristas-extras')==='1'; }catch(e){}
+let regRecolhido = false;
+try{ regRecolhido = localStorage.getItem('kn-diaristas-dias-recolhido')==='1'; }catch(e){}
 function toggleExtras(){
   KN_PRIVATE = !KN_PRIVATE;
   try{ localStorage.setItem('kn-diaristas-extras', KN_PRIVATE?'1':'0'); }catch(e){}
@@ -2331,9 +2344,9 @@ function renderRegistros(c){
       <div class="field mb0"><label>Responsável do dia</label><select id="fResp">${opt('','Todos',st.resp)}${opt('__sem','Sem responsável',st.resp)}${responsaveis.map(([k,v])=>opt(k,v,st.resp)).join('')}</select></div>
       <button type="button" class="btn secondary sm" id="fLimpar" ${(st.empresa||st.turno||st.situacao||st.resp||st.tipo!=='todos')?'':'disabled'}>Limpar filtros</button>
     </section>
-    <div class="reg-grid">
+    <div class="reg-grid ${regRecolhido?'recolhido':''}">
       <section class="panel reg-dias">
-        <div class="flex between" style="margin-bottom:10px"><h2 style="margin:0">Dias</h2><span class="small muted">${diasFiltrados.length}</span></div>
+        <div class="reg-dias-head"><h2 style="margin:0">Dias</h2><span class="small muted" style="margin-left:auto">${diasFiltrados.length}</span><button type="button" class="reg-toggle" id="regToggle" title="${regRecolhido?'Mostrar lista de dias':'Recolher lista de dias (ver a tabela inteira)'}">${regRecolhido?'»':'«'}</button></div>
         <div class="reg-lista">${diasFiltrados.length?diasFiltrados.map(d=>{const r=resumo(d);const ok=r.e===r.t&&r.s===r.t;const fds=ehFimDeSemana(d);const resp=plantaoDe(d);return `<button type="button" class="reg-dia ${d===st.dia?'on':''} ${fds?'fds':''}" data-dia="${d}">
           <span class="rd-data"><b>${fmtDateBR(d).slice(0,5)}</b><small>${fds?diaSemana(d).slice(0,3)+' · plantão':diaSemana(d).split('-')[0]}</small></span>
           <span class="rd-num">${r.t}<small>diaristas</small></span>
@@ -2344,6 +2357,14 @@ function renderRegistros(c){
       <section class="panel reg-det" id="regDet"></section>
     </div>`;
   c.appendChild(wrap);
+  const regTg = wrap.querySelector('#regToggle');
+  if(regTg) regTg.addEventListener('click', ()=>{
+    regRecolhido = !regRecolhido;
+    try{ localStorage.setItem('kn-diaristas-dias-recolhido', regRecolhido?'1':'0'); }catch(e){}
+    wrap.querySelector('.reg-grid').classList.toggle('recolhido', regRecolhido);
+    regTg.textContent = regRecolhido?'»':'«';
+    regTg.title = regRecolhido?'Mostrar lista de dias':'Recolher lista de dias (ver a tabela inteira)';
+  });
 
   const colunas = r=>[fmtDateBR(r.data), diaSemana(r.data), ehFimDeSemana(r.data)?'Plantão':'Dia útil', plantaoDe(r.data), r.nome, formatCPF(r.cpf), r.groot_id||'', r.empresa, r.cargo, r.turno, r.horario_entrada||'', fmtBatida(r.qr_entrada_batida_em,r.data), fmtBatida(r.qr_saida_batida_em,r.data), {completo:'Completo',semsaida:'Sem saída',sembatida:'Sem batida'}[situacaoDe(r)]];
   const header = ['Data','Dia','Tipo','Responsável do dia','Nome','CPF','GROOT ID','Empresa','Cargo','Turno','Horário previsto','Entrada (ponto)','Saída (ponto)','Situação'];
