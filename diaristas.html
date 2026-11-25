@@ -450,6 +450,8 @@ body.consulta .hist-cpf{display:none}
 body:not(.kn-liberado) > *:not(#knLock):not(script){display:none!important}
 #knLock{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:#07090d;font-family:'Onest',Inter,'Segoe UI',system-ui,sans-serif}
 body.kn-liberado #knLock{display:none!important}
+#knLock:not(.mostrar) form{display:none}
+#knLock{user-select:none;-webkit-user-select:none}
 #knLock form{width:min(380px,94vw);background:rgba(14,18,24,.97);color:#eef2f5;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:30px 24px;text-align:center}
 #knLock .cad{font-size:36px;margin-bottom:8px}
 #knLock h2{margin:0 0 6px;font-size:18px;font-weight:700}#knLock h2 span{color:#4cc3ff}
@@ -492,8 +494,14 @@ body.kn-liberado #knLock{display:none!important}
     }).catch(function(){ err.textContent='Não foi possível conferir a senha agora. Tente de novo.'; btn.disabled=false; });
   });
   var salva=null; try{ salva=sessionStorage.getItem(CH); }catch(e){}
-  if(salva){ confere(salva).then(function(ok){ if(ok) libera(); else { try{sessionStorage.removeItem(CH);}catch(e){} inp.focus(); } }).catch(function(){ inp.focus(); }); }
-  else inp.focus();
+  if(salva){ confere(salva).then(function(ok){ if(ok) libera(); else { try{sessionStorage.removeItem(CH);}catch(e){} } }).catch(function(){}); }
+  /* Senha escondida: tela vazia; duplo clique numa área sem nada (ou Ctrl+Shift+K) mostra o campo */
+  (function(){
+    var L=document.getElementById('knLock'), F=document.getElementById('knLockForm'), I=document.getElementById('knLockSenha');
+    function mostra(){ L.classList.add('mostrar'); setTimeout(function(){ I.focus(); },30); }
+    L.addEventListener('dblclick',function(e){ if(F.contains(e.target)) return; try{window.getSelection().removeAllRanges();}catch(_){} if(L.classList.contains('mostrar')) L.classList.remove('mostrar'); else mostra(); });
+    document.addEventListener('keydown',function(e){ if(e.ctrlKey&&e.shiftKey&&(e.key==='K'||e.key==='k')&&!document.body.classList.contains('kn-liberado')){ e.preventDefault(); mostra(); } if(e.key==='Escape') L.classList.remove('mostrar'); });
+  })();
 })();
 </script>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>

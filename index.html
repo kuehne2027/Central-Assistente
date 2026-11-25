@@ -200,6 +200,8 @@ body.mini #main{left:var(--side-mini)}
 body:not(.liberado) > *:not(#lock){display:none!important}
 #lock{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;background:var(--bg)}
 body.liberado #lock{display:none}
+#lock:not(.mostrar) form{display:none}
+#lock{user-select:none;-webkit-user-select:none}
 #lock form{width:min(380px,94vw);background:var(--modal);border:1px solid var(--line);border-radius:18px;padding:30px 24px;text-align:center;box-shadow:var(--shadow)}
 #lock .cad{font-size:36px;margin-bottom:8px}
 #lock h2{margin:0 0 6px;font-family:var(--f-display);font-size:18px;font-weight:700}
@@ -520,8 +522,15 @@ async function iniciarCentral(){
     btn.disabled=false;
   });
   if(SENHA){ const s=SENHA; SENHA=null;
-    confere(s).then(ok=>{ if(ok) entra(s); else { try{sessionStorage.removeItem('kn-dia-s');}catch(e){} inp.focus(); } }).catch(()=>inp.focus());
-  } else inp.focus();
+    confere(s).then(ok=>{ if(ok) entra(s); else { try{sessionStorage.removeItem('kn-dia-s');}catch(e){} } }).catch(()=>{});
+  }
+  /* Senha escondida: tela vazia; duplo clique numa área sem nada (ou Ctrl+Shift+K) mostra o campo */
+  (function(){
+    var L=document.getElementById('lock'), F=document.getElementById('lockForm'), I=document.getElementById('lockSenha');
+    function mostra(){ L.classList.add('mostrar'); setTimeout(function(){ I.focus(); },30); }
+    L.addEventListener('dblclick',function(e){ if(F.contains(e.target)) return; try{window.getSelection().removeAllRanges();}catch(_){} if(L.classList.contains('mostrar')) L.classList.remove('mostrar'); else mostra(); });
+    document.addEventListener('keydown',function(e){ if(e.ctrlKey&&e.shiftKey&&(e.key==='K'||e.key==='k')&&!document.body.classList.contains('liberado')){ e.preventDefault(); mostra(); } if(e.key==='Escape') L.classList.remove('mostrar'); });
+  })();
 })();
 </script>
 </body>
