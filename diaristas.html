@@ -446,64 +446,14 @@ body.consulta .hist-cpf{display:none}
 .lexp-filtros #lExportXlsx{flex:0 0 auto;min-height:36px;white-space:nowrap}
 @media (max-width:1100px){.lexp-filtros{flex-wrap:wrap}.lexp-filtros .field{flex:1 1 160px}}
 </style>
-<style id="kn-lock-css">
-body:not(.kn-liberado) > *:not(#knLock):not(script){display:none!important}
-#knLock{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:#07090d;font-family:'Onest',Inter,'Segoe UI',system-ui,sans-serif}
-body.kn-liberado #knLock{display:none!important}
-#knLock:not(.mostrar) form{display:none}
-#knLock{user-select:none;-webkit-user-select:none}
-#knLock form{width:min(380px,94vw);background:rgba(14,18,24,.97);color:#eef2f5;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:30px 24px;text-align:center}
-#knLock .cad{font-size:36px;margin-bottom:8px}
-#knLock h2{margin:0 0 6px;font-size:18px;font-weight:700}#knLock h2 span{color:#4cc3ff}
-#knLock p{margin:0 0 18px;font-size:12.5px;color:#8c97a3}
-#knLock input{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.045);color:#eef2f5;font-size:15px;outline:none;text-align:center;letter-spacing:.15em;font-family:inherit}
-#knLock input:focus{border-color:#4cc3ff}
-#knLock button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:12px;font-weight:600;font-size:14px;color:#04121b;background:#4cc3ff;cursor:pointer;font-family:inherit}
-#knLock button:disabled{opacity:.6;cursor:wait}
-#knLock .erro{min-height:18px;margin-top:10px;font-size:12px;color:#ff6b6e}
-#knLock .rod{margin-top:14px;font-size:10px;color:#8c97a3;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
-</style></head>
+</head>
 <!--
   Central KN — Controle de Diaristas
   Idealização e desenvolvimento: Isis Costa de Mello
   © 2026 Isis Costa de Mello
   Identificação de autoria da interface e implementação deste projeto.
 -->
-<body><div id="knLock"><form id="knLockForm" autocomplete="off">
-  <div class="cad">🔒</div><h2>Controle de <span>Diaristas</span></h2>
-  <p>Acesso restrito. Digite a senha para entrar.</p>
-  <input id="knLockSenha" type="password" placeholder="Senha" autocomplete="off" required>
-  <button id="knLockBtn" type="submit">Entrar</button>
-  <div class="erro" id="knLockErro"></div>
-  <div class="rod">Kuehne+Nagel</div>
-</form></div>
-<script>
-/* Trava de acesso: mesma senha da Central / Controle de Diaristas (kn_dia_login no Supabase).
-   A senha não fica escrita neste arquivo. */
-(function(){
-  var URL_SB='https://wimqujskqgabjboihiei.supabase.co', KEY='sb_publishable_9fcTqUHHJK8R3ebe_l1lXQ_LQwmWWlI', CH='kn-dia-s';
-  function confere(s){ return fetch(URL_SB+'/rest/v1/rpc/kn_dia_login',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify({p_senha:s})})
-    .then(function(r){ if(!r.ok) throw new Error('x'); return r.json(); }).then(function(d){ return d===true; }); }
-  var form=document.getElementById('knLockForm'), inp=document.getElementById('knLockSenha'), btn=document.getElementById('knLockBtn'), err=document.getElementById('knLockErro');
-  function libera(){ document.body.classList.add('kn-liberado'); }
-  form.addEventListener('submit',function(ev){
-    ev.preventDefault(); var s=inp.value; if(!s) return; btn.disabled=true; err.textContent='';
-    confere(s).then(function(ok){
-      if(ok){ try{sessionStorage.setItem(CH,s);}catch(e){} location.reload(); }
-      else { err.textContent='Senha incorreta.'; inp.select(); btn.disabled=false; }
-    }).catch(function(){ err.textContent='Não foi possível conferir a senha agora. Tente de novo.'; btn.disabled=false; });
-  });
-  var salva=null; try{ salva=sessionStorage.getItem(CH); }catch(e){}
-  if(salva){ confere(salva).then(function(ok){ if(ok) libera(); else { try{sessionStorage.removeItem(CH);}catch(e){} } }).catch(function(){}); }
-  /* Senha escondida: tela vazia; duplo clique numa área sem nada (ou Ctrl+Shift+K) mostra o campo */
-  (function(){
-    var L=document.getElementById('knLock'), F=document.getElementById('knLockForm'), I=document.getElementById('knLockSenha');
-    function mostra(){ L.classList.add('mostrar'); setTimeout(function(){ I.focus(); },30); }
-    L.addEventListener('dblclick',function(e){ if(F.contains(e.target)) return; try{window.getSelection().removeAllRanges();}catch(_){} if(L.classList.contains('mostrar')) L.classList.remove('mostrar'); else mostra(); });
-    document.addEventListener('keydown',function(e){ if(e.ctrlKey&&e.shiftKey&&(e.key==='K'||e.key==='k')&&!document.body.classList.contains('kn-liberado')){ e.preventDefault(); mostra(); } if(e.key==='Escape') L.classList.remove('mostrar'); });
-  })();
-})();
-</script>
+<body>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="grain" aria-hidden="true"></div>
 <header id="topnav">
