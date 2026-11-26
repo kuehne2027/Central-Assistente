@@ -213,6 +213,7 @@ table.table-compact th,table.table-compact td{padding:9px 10px}
 .pill.empresa.meli{background:color-mix(in srgb,var(--amber) 13%,transparent);color:var(--amber)}
 .pill.empresa.kn{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
 .pill.empresa.tsi{background:color-mix(in srgb,var(--violet) 14%,transparent);color:var(--violet)}
+.pill.empresa.hd{background:color-mix(in srgb,#00A3E0 14%,transparent);color:#00A3E0}
 .chip{display:inline-flex;align-items:center;background:var(--wash);border:1px solid var(--line);padding:4px 11px;border-radius:999px;font-size:12px;margin:2px;color:var(--ink)}
 .badge-count{background:var(--amber);color:#1a1000;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
 
@@ -868,7 +869,7 @@ function registrosDoDia(dataISO){
 }
 function agregarDia(dataISO){
   const regs = registrosDoDia(dataISO);
-  const agg = {total:regs.length, MELI:0, KN:0, TSI:0, T1:0, T2:0, T3:0};
+  const agg = {total:regs.length, MELI:0, KN:0, TSI:0, HD:0, T1:0, T2:0, T3:0};
   regs.forEach(r=>{
     if(agg[r.empresa]!==undefined) agg[r.empresa]+=1; else agg[r.empresa]=(agg[r.empresa]||0)+1;
     if(agg[r.turno]!==undefined) agg[r.turno]+=1;
@@ -1063,7 +1064,7 @@ function openDiaristaModal(diarista){
       <div class="field"><label>GROOT ID</label><input id="mGroot" class="w100" value="${isEdit?esc(diarista.groot_id||''):''}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>Empresa *</label><input id="mEmpresa" list="empresasList" class="w100" value="${isEdit?esc(diarista.empresa):''}" placeholder="TSI, MELI, KN..."></div>
+      <div class="field"><label>Empresa *</label><input id="mEmpresa" list="empresasList" class="w100" value="${isEdit?esc(diarista.empresa):''}" placeholder="TSI, MELI, KN, HD..."></div>
       <div class="field"><label>Ext (login)</label><input id="mExt" class="w100" value="${isEdit?esc(diarista.ext||''):''}" placeholder="Ext_nomedapessoa"></div>
     </div>
     <div class="field"><label>Cargo *</label><select id="mCargo" class="w100">
@@ -1352,7 +1353,7 @@ function renderImportar(c){
       <div class="grid3">
         <div class="field"><label>Data de trabalho (use somente se a planilha não trouxer a data ao lado do nome)</label><input type="date" id="wDataGeral" value="${wiz.dataGeral}"></div>
         <div class="field"><label>Turno padrão (opcional, se não houver coluna Turno)</label><select id="wTurnoGeral"><option value="">—</option><option>T1</option><option>T2</option><option>T3</option></select></div>
-        <div class="field"><label>Empresa padrão (opcional, se não houver coluna Empresa)</label><input id="wEmpresaGeral" list="empresasList2" value="${esc(wiz.empresaGeral)}" placeholder="TSI, MELI, KN..."><datalist id="empresasList2">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist></div>
+        <div class="field"><label>Empresa padrão (opcional, se não houver coluna Empresa)</label><input id="wEmpresaGeral" list="empresasList2" value="${esc(wiz.empresaGeral)}" placeholder="TSI, MELI, KN, HD..."><datalist id="empresasList2">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist></div>
       </div>
       <div class="dropzone" id="dz">
         <div style="font-size:26px;">&#8593;</div>
@@ -2379,7 +2380,7 @@ function renderRegistros(c){
 
   const situacaoHtml = x=>({completo:'<span class="status-present">● Completo</span>',semsaida:'<span class="status-pending">● Sem saída</span>',sembatida:'<span class="status-pending">● Sem batida</span>'}[situacaoDe(x)]);
   const horaDe = iso=>{ if(!iso) return ''; const d=new Date(iso); return isNaN(d)?'':String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
-  const empresasOpc = Array.from(new Set(['TSI','MELI','KN', ...empresas]));
+  const empresasOpc = Array.from(new Set(['TSI','MELI','KN','HD', ...empresas]));
   function linhaEditavel(x){
     const sel = (campo, ops, v)=>`<select data-campo="${campo}" data-id="${x.id}">${ops.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}${v&&!ops.includes(v)?`<option selected>${esc(v)}</option>`:''}</select>`;
     return `<tr data-row="${x.id}"><td class="reg-chk-td"><input type="checkbox" class="reg-chk" data-sel="${x.id}" title="Marcar para excluir"></td><td class="reg-nome">${esc(x.nome)}</td><td class="reg-cpf">${formatCPF(x.cpf)}</td><td>${esc(x.groot_id||'-')}</td>
