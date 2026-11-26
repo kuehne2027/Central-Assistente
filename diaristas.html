@@ -876,6 +876,11 @@ function agregarDia(dataISO){
   });
   return agg;
 }
+function opcoesEmpresa(atual, vazio){
+  const lista = empresasUsadas(); const v = String(atual||'').trim().toUpperCase();
+  if(v && !lista.includes(v)) lista.push(v);
+  return (vazio?`<option value="">${vazio}</option>`:'') + lista.map(e=>`<option value="${esc(e)}" ${e===v?'selected':''}>${esc(e)}</option>`).join('');
+}
 function empresasUsadas(){
   const s = new Set(['TSI','MELI','KN','HD']);
   DIARISTAS.forEach(d=>d.empresa && s.add(d.empresa));
@@ -1064,7 +1069,7 @@ function openDiaristaModal(diarista){
       <div class="field"><label>GROOT ID</label><input id="mGroot" class="w100" value="${isEdit?esc(diarista.groot_id||''):''}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>Empresa *</label><input id="mEmpresa" list="empresasList" class="w100" value="${isEdit?esc(diarista.empresa):''}" placeholder="TSI, MELI, KN, HD..."></div>
+      <div class="field"><label>Empresa *</label><select id="mEmpresa" class="w100">${opcoesEmpresa(isEdit?diarista.empresa:'','Selecione…')}</select></div>
       <div class="field"><label>Ext (login)</label><input id="mExt" class="w100" value="${isEdit?esc(diarista.ext||''):''}" placeholder="Ext_nomedapessoa"></div>
     </div>
     <div class="field"><label>Cargo *</label><select id="mCargo" class="w100">
@@ -1353,7 +1358,7 @@ function renderImportar(c){
       <div class="grid3">
         <div class="field"><label>Data de trabalho (use somente se a planilha não trouxer a data ao lado do nome)</label><input type="date" id="wDataGeral" value="${wiz.dataGeral}"></div>
         <div class="field"><label>Turno padrão (opcional, se não houver coluna Turno)</label><select id="wTurnoGeral"><option value="">—</option><option>T1</option><option>T2</option><option>T3</option></select></div>
-        <div class="field"><label>Empresa padrão (opcional, se não houver coluna Empresa)</label><input id="wEmpresaGeral" list="empresasList2" value="${esc(wiz.empresaGeral)}" placeholder="TSI, MELI, KN, HD..."><datalist id="empresasList2">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist></div>
+        <div class="field"><label>Empresa padrão (opcional, se não houver coluna Empresa)</label><select id="wEmpresaGeral">${opcoesEmpresa(wiz.empresaGeral,'— nenhuma —')}</select></div>
       </div>
       <div class="dropzone" id="dz">
         <div style="font-size:26px;">&#8593;</div>
@@ -1532,7 +1537,7 @@ function renderImportar(c){
       <div class="panel mt8" style="box-shadow:none;border:1px solid var(--line);background:var(--wash);padding:12px 16px;margin-bottom:14px;">
         <div class="flex gap8" style="flex-wrap:wrap;align-items:flex-end;">
           <div class="field mb0"><label>Aplicar Turno a todas as linhas</label><select id="bulkTurno"><option value="">—</option><option>T1</option><option>T2</option><option>T3</option></select></div>
-          <div class="field mb0"><label>Aplicar Empresa a todas as linhas</label><input id="bulkEmpresa" list="empresasList3" value="TSI" placeholder="TSI"><datalist id="empresasList3">${empresasUsadas().map(e=>`<option value="${e}">`).join('')}</datalist></div>
+          <div class="field mb0"><label>Aplicar Empresa a todas as linhas</label><select id="bulkEmpresa">${opcoesEmpresa('TSI')}</select></div>
           <div class="field mb0"><label>Aplicar Horário a todas as linhas</label><input id="bulkHorario" style="width:90px;" placeholder="08:00"></div>
           <div class="field mb0"><label>Aplicar Data a todas as linhas</label><input type="date" id="bulkData" style="width:150px;"></div>
           <button class="btn secondary sm" id="bulkApply">Aplicar a todas</button>
@@ -1545,7 +1550,7 @@ function renderImportar(c){
         <td>${r.cpf?formatCPF(r.cpf):'<span class="muted">—</span>'}</td>
         <td><span class="pill ${r.status}">${r.status.toUpperCase()}</span>${r.dupInfo?`<div class="small muted">${esc(r.dupInfo)}</div>`:''}${r.status==='erro'?`<div class="small muted">${esc(r.motivo)}</div>`:''}</td>
         <td>${esc(r.groot)||'-'}</td>
-        <td><input data-empresa="${i}" list="empresasList3" style="width:90px;" value="${esc(r.empresa)}" placeholder="definir"></td>
+        <td><select data-empresa="${i}" style="width:100px;">${opcoesEmpresa(r.empresa, r.empresa?'':'definir')}</select></td>
         <td><select data-turno="${i}" style="width:70px;"><option value="">—</option>${['T1','T2','T3'].map(t=>`<option ${r.turno===t?'selected':''}>${t}</option>`).join('')}</select></td>
         <td style="white-space:nowrap;">
           <input data-horario="${i}" style="width:65px;" value="${esc(r.horario)}" placeholder="08:00">
